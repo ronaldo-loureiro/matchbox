@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.annotation.PostConstruct;
 
+import ca.uhn.fhir.jpa.term.TermReadSvcR4;
 import org.hl7.fhir.common.hapi.validation.support.UnknownCodeSystemWarningValidationSupport;
 import org.hl7.fhir.common.hapi.validation.validator.FhirInstanceValidator;
 import org.hl7.fhir.r5.utils.validation.constants.BestPracticeWarningLevel;
@@ -25,27 +26,27 @@ import ca.uhn.fhir.jpa.batch2.JpaBatch2Config;
 import ca.uhn.fhir.jpa.config.JpaConfig;
 import ca.uhn.fhir.jpa.config.r4.JpaR4Config;
 import ca.uhn.fhir.jpa.starter.annotations.OnR4Condition;
-import ca.uhn.fhir.jpa.starter.cql.StarterCqlR4Config;
+//import ca.uhn.fhir.jpa.starter.cql.StarterCqlR4Config;
 import ca.uhn.fhir.jpa.term.api.ITermReadSvcR4;
 import ca.uhn.fhir.jpa.validation.ValidatorPolicyAdvisor;
 import ca.uhn.fhir.jpa.validation.ValidatorResourceFetcher;
 import ca.uhn.fhir.validation.IInstanceValidatorModule;
-import ch.ahdis.fhir.hapi.jpa.validation.CachingValidationSupport;
-import ch.ahdis.fhir.hapi.jpa.validation.ExtTermReadSvcR4;
-import ch.ahdis.fhir.hapi.jpa.validation.ExtUnknownCodeSystemWarningValidationSupport;
+//import ch.ahdis.fhir.hapi.jpa.validation.CachingValidationSupport;
+//import ch.ahdis.fhir.hapi.jpa.validation.ExtTermReadSvcR4;
+//import ch.ahdis.fhir.hapi.jpa.validation.ExtUnknownCodeSystemWarningValidationSupport;
 import ch.ahdis.fhir.hapi.jpa.validation.JpaExtendedValidationSupportChain;
-import ch.ahdis.fhir.hapi.jpa.validation.ValidationProvider;
+//import ch.ahdis.fhir.hapi.jpa.validation.ValidationProvider;
 import ch.ahdis.matchbox.mappinglanguage.ConvertingWorkerContext;
-import ch.ahdis.matchbox.mappinglanguage.StructureDefinitionProvider;
-import ch.ahdis.matchbox.mappinglanguage.StructureMapTransformProvider;
-import ch.ahdis.matchbox.questionnaire.QuestionnaireAssembleProvider;
-import ch.ahdis.matchbox.questionnaire.QuestionnairePopulateProvider;
-import ch.ahdis.matchbox.questionnaire.QuestionnaireResponseExtractProvider;
+//import ch.ahdis.matchbox.mappinglanguage.StructureDefinitionProvider;
+//import ch.ahdis.matchbox.mappinglanguage.StructureMapTransformProvider;
+//import ch.ahdis.matchbox.questionnaire.QuestionnaireAssembleProvider;
+//import ch.ahdis.matchbox.questionnaire.QuestionnairePopulateProvider;
+//import ch.ahdis.matchbox.questionnaire.QuestionnaireResponseExtractProvider;
 import ch.ahdis.matchbox.util.MatchboxPackageInstallerImpl;
 
 @Configuration
 @Conditional(OnR4Condition.class)
-@Import({ StarterJpaConfig.class, JpaR4Config.class, StarterCqlR4Config.class, ElasticsearchConfig.class, ReindexAppCtx.class, JpaBatch2Config.class })
+@Import({ StarterJpaConfig.class, JpaR4Config.class, /*StarterCqlR4Config.class,*/ /*ElasticsearchConfig.class,*/ ReindexAppCtx.class, JpaBatch2Config.class })
 public class FhirServerConfigR4 {
 
   /**
@@ -76,47 +77,47 @@ public class FhirServerConfigR4 {
   @Autowired
   private ConfigurableEnvironment configurableEnvironment;
 
-  @Bean(autowire = Autowire.BY_TYPE)
-  public ITermReadSvcR4 terminologyService() {
-    return new ExtTermReadSvcR4();
-  }
-  
+//  @Bean(autowire = Autowire.BY_TYPE)
+//  public ITermReadSvcR4 terminologyService() {
+//    return new ExtTermReadSvcR4();
+//  }
+
 //  @Bean
 //  public ITermCodeSystemStorageSvc termCodeSystemStorageSvc() {
 //    return new NullTermCodeSystemStorageSvcImpl();
 //  }
-  
+
 //  @Bean
 //  public ITermConceptMappingSvc termConceptMappingSvc() {
 //    return new NullTermConceptMappingSvcImpl();
 //  }
 
-  @Bean(autowire = Autowire.BY_TYPE)
-  public ValidationProvider validationProvider() {
-    return new ValidationProvider();
-  }
+//  @Bean(autowire = Autowire.BY_TYPE)
+//  public ValidationProvider validationProvider() {
+//    return new ValidationProvider();
+//  }
 
-  @Bean
-  public UnknownCodeSystemWarningValidationSupport unknownCodeSystemWarningValidationSupport() {
-    return new ExtUnknownCodeSystemWarningValidationSupport(fhirContext);
-  }
+//  @Bean
+//  public UnknownCodeSystemWarningValidationSupport unknownCodeSystemWarningValidationSupport() {
+//    return new ExtUnknownCodeSystemWarningValidationSupport(fhirContext);
+//  }
 
-  @Bean
-  public QuestionnairePopulateProvider questionnaireProvider() {
-    return new QuestionnairePopulateProvider();
-  }
+//  @Bean
+//  public QuestionnairePopulateProvider questionnaireProvider() {
+//    return new QuestionnairePopulateProvider();
+//  }
+//
+//  @Bean
+//  public QuestionnaireAssembleProvider assembleProvider() {
+//    return new QuestionnaireAssembleProvider();
+//  }
+//
+//  @Bean
+//  public QuestionnaireResponseExtractProvider questionnaireResponseProvider() {
+//    return new QuestionnaireResponseExtractProvider();
+//  }
 
-  @Bean
-  public QuestionnaireAssembleProvider assembleProvider() {
-    return new QuestionnaireAssembleProvider();
-  }
 
-  @Bean
-  public QuestionnaireResponseExtractProvider questionnaireResponseProvider() {
-    return new QuestionnaireResponseExtractProvider();
-  }
-
-  
   @Bean(name="myStructureDefinitionDaoR4")
   public
     IFhirResourceDaoStructureDefinition<org.hl7.fhir.r4.model.StructureDefinition>
@@ -128,15 +129,15 @@ public class FhirServerConfigR4 {
     return retVal;
   }
 
-  @Bean(name="myStructureDefinitionRpR4")
-  @Primary
-  public ca.uhn.fhir.jpa.rp.r4.StructureDefinitionResourceProvider rpStructureDefinitionR4() {
-    ca.uhn.fhir.jpa.rp.r4.StructureDefinitionResourceProvider retVal;
-    retVal = new StructureDefinitionProvider();
-    retVal.setContext(fhirContext);
-    retVal.setDao(daoStructureDefinitionR4());
-    return retVal;
-  }
+//  @Bean(name="myStructureDefinitionRpR4")
+//  @Primary
+//  public ca.uhn.fhir.jpa.rp.r4.StructureDefinitionResourceProvider rpStructureDefinitionR4() {
+//    ca.uhn.fhir.jpa.rp.r4.StructureDefinitionResourceProvider retVal;
+//    retVal = new StructureDefinitionProvider();
+//    retVal.setContext(fhirContext);
+//    retVal.setDao(daoStructureDefinitionR4());
+//    return retVal;
+//  }
 
 
   @Bean(name = "myStructureMapDaoR4")
@@ -149,15 +150,15 @@ public class FhirServerConfigR4 {
     return retVal;
   }
 
-  @Bean(name = "myStructureMapRpR4")
-  @Primary
-  public ca.uhn.fhir.jpa.rp.r4.StructureMapResourceProvider rpStructureMapR4() {
-    ca.uhn.fhir.jpa.rp.r4.StructureMapResourceProvider retVal;
-    retVal = new StructureMapTransformProvider();
-    retVal.setContext(fhirContext);
-    retVal.setDao(daoStructureMapR4());
-    return retVal;
-  }
+//  @Bean(name = "myStructureMapRpR4")
+//  @Primary
+//  public ca.uhn.fhir.jpa.rp.r4.StructureMapResourceProvider rpStructureMapR4() {
+//    ca.uhn.fhir.jpa.rp.r4.StructureMapResourceProvider retVal;
+//    retVal = new StructureMapTransformProvider();
+//    retVal.setContext(fhirContext);
+//    retVal.setDao(daoStructureMapR4());
+//    return retVal;
+//  }
 
   @Bean(name = "myImplementationGuideDaoR4")
   public IFhirResourceDao<org.hl7.fhir.r4.model.ImplementationGuide> daoImplementationGuideR4() {
@@ -195,11 +196,11 @@ public class FhirServerConfigR4 {
   public JpaExtendedValidationSupportChain jpaValidationSupportChain() {
     return new JpaExtendedValidationSupportChain(fhirContext);
   }
-  
-  @Bean(name = JpaConfig.JPA_VALIDATION_SUPPORT)
-  public IValidationSupport jpaValidationSupport(FhirContext theFhirContext) {
-    return new ch.ahdis.fhir.hapi.jpa.validation.JpaPersistedResourceValidationSupport(theFhirContext);
-  }
+
+//  @Bean(name = JpaConfig.JPA_VALIDATION_SUPPORT)
+//  public IValidationSupport jpaValidationSupport(FhirContext theFhirContext) {
+//    return new ch.ahdis.fhir.hapi.jpa.validation.JpaPersistedResourceValidationSupport(theFhirContext);
+//  }
 
   @Bean(name = "myInstanceValidator")
   public IInstanceValidatorModule instanceValidator() {
@@ -209,12 +210,12 @@ public class FhirServerConfigR4 {
     val.setBestPracticeWarningLevel(BestPracticeWarningLevel.Warning);
     return val;
   }
-  
+
   @Bean
   public ValidatorResourceFetcher jpaValidatorResourceFetcher() {
     return new ValidatorResourceFetcher();
   }
-  
+
   @Bean
   public ValidatorPolicyAdvisor jpaValidatorPolicyAdvisor() {
     return new ValidatorPolicyAdvisor();
@@ -223,10 +224,10 @@ public class FhirServerConfigR4 {
   @Bean
   @Primary
   public IValidationSupport validationSupportChain() {
-    CachingValidationSupport.CacheTimeouts cacheTimeouts = CachingValidationSupport.CacheTimeouts.defaultValues()
-        .setTranslateCodeMillis(1000).setMiscMillis(1000).setValidateCodeMillis(1000);
-    return new CachingValidationSupport(jpaValidationSupportChain(), cacheTimeouts);
-	  //return jpaValidationSupportChain();
+//    CachingValidationSupport.CacheTimeouts cacheTimeouts = CachingValidationSupport.CacheTimeouts.defaultValues()
+//        .setTranslateCodeMillis(1000).setMiscMillis(1000).setValidateCodeMillis(1000);
+//    return new CachingValidationSupport(jpaValidationSupportChain(), cacheTimeouts);
+	  return jpaValidationSupportChain();
   }
 
 
@@ -234,7 +235,7 @@ public class FhirServerConfigR4 {
   public MatchboxPackageInstallerImpl packageInstaller() {
     return new MatchboxPackageInstallerImpl();
   }
-  
+
 
 
 }

@@ -3,7 +3,7 @@ package ch.ahdis.fhir.hapi.jpa.validation;
 import javax.annotation.PostConstruct;
 
 import org.hl7.fhir.common.hapi.validation.support.CommonCodeSystemsTerminologyService;
-import org.hl7.fhir.common.hapi.validation.support.InMemoryTerminologyServerValidationSupport;
+//import org.hl7.fhir.common.hapi.validation.support.InMemoryTerminologyServerValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.RemoteTerminologyServiceValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.SnapshotGeneratingValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.UnknownCodeSystemWarningValidationSupport;
@@ -40,20 +40,20 @@ public class JpaExtendedValidationSupportChain extends JpaValidationSupportChain
 	private ITermConceptMappingSvc myConceptMappingSvc;
 	@Autowired
 	private UnknownCodeSystemWarningValidationSupport myUnknownCodeSystemWarningValidationSupport;
-	
+
 	private SnapshotGeneratingValidationSupport snapshotGeneratingValidationSupport;
-	private ExtInMemoryTerminologyServerValidationSupport extInMemoryTerminologyServerValidationSupport;
+//	private ExtInMemoryTerminologyServerValidationSupport extInMemoryTerminologyServerValidationSupport;
 	private CommonCodeSystemsTerminologyService commonCodeSystemsTerminologyService;
 
 	public JpaExtendedValidationSupportChain(FhirContext theFhirContext) {
 		super(theFhirContext);
-		this.myFhirContext = theFhirContext; 
+		this.myFhirContext = theFhirContext;
 	}
 
 	@PostConstruct
 	public void postConstruct() {
 //	Original JpaValidationSupportChain
-//		super.postConstruct();	
+//		super.postConstruct();
 //		addValidationSupport(myDefaultProfileValidationSupport);
 //		addValidationSupport(myJpaValidationSupport);
 //		//TODO MAKE SURE THAT THIS IS BEING CAL
@@ -63,13 +63,13 @@ public class JpaExtendedValidationSupportChain extends JpaValidationSupportChain
 //		addValidationSupport(myNpmJpaValidationSupport);
 //		addValidationSupport(new CommonCodeSystemsTerminologyService(myFhirContext));
 //		addValidationSupport(myConceptMappingSvc);
-		
+
 		//TODO MAKE SURE THAT THIS IS BEING CAL
-		addValidationSupport(myTerminologyService);
+//		addValidationSupport(myTerminologyService);
 		snapshotGeneratingValidationSupport = new SnapshotGeneratingValidationSupport(myFhirContext);
 		addValidationSupport(snapshotGeneratingValidationSupport);
-		extInMemoryTerminologyServerValidationSupport = new ExtInMemoryTerminologyServerValidationSupport(myFhirContext);
-		addValidationSupport(extInMemoryTerminologyServerValidationSupport);
+//		extInMemoryTerminologyServerValidationSupport = new ExtInMemoryTerminologyServerValidationSupport(myFhirContext);
+//		addValidationSupport(extInMemoryTerminologyServerValidationSupport);
 		//addValidationSupport(myNpmJpaValidationSupport);
 		commonCodeSystemsTerminologyService = new CommonCodeSystemsTerminologyService(myFhirContext);
 		addValidationSupport(commonCodeSystemsTerminologyService);
@@ -80,6 +80,6 @@ public class JpaExtendedValidationSupportChain extends JpaValidationSupportChain
 		// https://github.com/ahdis/matchbox/issues/50
     addValidationSupport(myDefaultProfileValidationSupport);
 	}
-	
-		
+
+
 }

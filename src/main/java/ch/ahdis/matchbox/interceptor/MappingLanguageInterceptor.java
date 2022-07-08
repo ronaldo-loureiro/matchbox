@@ -55,7 +55,7 @@ import ca.uhn.fhir.rest.api.Constants;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import ca.uhn.fhir.rest.server.interceptor.InterceptorAdapter;
-import ch.ahdis.matchbox.spring.boot.autoconfigure.MutableHttpServletRequest;
+//import ch.ahdis.matchbox.spring.boot.autoconfigure.MutableHttpServletRequest;
 
 /**
  * MappingLanguagerInterceptor converts a FHIR Mapping Language texture representation in a StructureMap resource
@@ -73,9 +73,6 @@ import ch.ahdis.matchbox.spring.boot.autoconfigure.MutableHttpServletRequest;
  *
  */
 public class MappingLanguageInterceptor extends InterceptorAdapter implements ITransformerServices {
-  
-  
-
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MappingLanguageInterceptor.class);
   
@@ -150,7 +147,7 @@ public class MappingLanguageInterceptor extends InterceptorAdapter implements IT
 		if (contentType.startsWith("text/fhir-mapping")) {
 	    log.debug("processing text/fhir mapping - converting to json");	    
 	    FhirVersionEnum version = extractFhirVersion(contentType);
-      ((MutableHttpServletRequest) theRequest).putHeader(Constants.HEADER_CONTENT_TYPE, "application/fhir+json");
+//      ((MutableHttpServletRequest) theRequest).putHeader(Constants.HEADER_CONTENT_TYPE, "application/fhir+json");
 
       StructureMap structureMap = parseMap(new String(theRequestDetails.loadRequestContents()));
       if ("PUT".equals(theRequest.getMethod())) {

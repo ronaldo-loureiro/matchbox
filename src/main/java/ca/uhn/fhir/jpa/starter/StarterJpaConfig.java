@@ -30,15 +30,15 @@ import javax.sql.DataSource;
 
 @Configuration
 public class StarterJpaConfig {
-	@Bean
-	public IFulltextSearchSvc fullTextSearchSvc() {
-		return new FulltextSearchSvcImpl();
-	}
+//	@Bean
+//	public IFulltextSearchSvc fullTextSearchSvc() {
+//		return new FulltextSearchSvcImpl();
+//	}
 
-	@Bean
-	public IStaleSearchDeletingSvc staleSearchDeletingSvc() {
-		return new StaleSearchDeletingSvcImpl();
-	}
+//	@Bean
+//	public IStaleSearchDeletingSvc staleSearchDeletingSvc() {
+//		return new StaleSearchDeletingSvcImpl();
+//	}
 
 	@Bean
 	public BatchConfigurer batchConfigurer() {

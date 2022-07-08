@@ -37,20 +37,19 @@ import ch.ahdis.matchbox.util.MatchboxPackageInstallerImpl;
  * $load and $load-all Operation for ImplementationGuide Resource
  *
  */
-@DisallowConcurrentExecution
 public class ImplementationGuideProvider extends ca.uhn.fhir.jpa.rp.r4.ImplementationGuideResourceProvider implements  Job, ApplicationContextAware {
 
-  @Override
-  public MethodOutcome delete(HttpServletRequest theRequest, IIdType theResource, String theConditional,
-      RequestDetails theRequestDetails) {
-    ImplementationGuide guide = this.getDao().read(theResource);
-    OperationOutcome oo = uninstall(guide);
-    MethodOutcome outcome =   super.delete(theRequest, theResource, theConditional, theRequestDetails);
-    if (oo!=null) {
-      outcome.setOperationOutcome(oo);
-    }
-    return outcome;
-  }
+//  @Override
+//  public MethodOutcome delete(HttpServletRequest theRequest, IIdType theResource, String theConditional,
+//      RequestDetails theRequestDetails) {
+//    ImplementationGuide guide = this.getDao().read(theResource);
+//    OperationOutcome oo = uninstall(guide);
+//    MethodOutcome outcome =   super.delete(theRequest, theResource, theConditional, theRequestDetails);
+//    if (oo!=null) {
+//      outcome.setOperationOutcome(oo);
+//    }
+//    return outcome;
+//  }
 
   @Override
   public MethodOutcome update(HttpServletRequest theRequest, ImplementationGuide theResource, IIdType theId,
@@ -76,7 +75,11 @@ public class ImplementationGuideProvider extends ca.uhn.fhir.jpa.rp.r4.Implement
   @Autowired
   AppProperties appProperties;
 
-  @Autowired
+
+	/**
+	 * Repository Spring
+	 */
+	@Autowired
   private INpmPackageVersionDao myPackageVersionDao;
 
   @Autowired
@@ -107,12 +110,12 @@ public class ImplementationGuideProvider extends ca.uhn.fhir.jpa.rp.r4.Implement
     return outcome;
   }
 
-  public OperationOutcome uninstall(ImplementationGuide theResource) {
-    return getOperationOutcome(packageInstallerSvc.uninstall(new PackageInstallationSpec()
-        .setPackageUrl(theResource.getUrl())
-        .setName(theResource.getName())
-        .setVersion(theResource.getVersion())));
-  }
+//  public OperationOutcome uninstall(ImplementationGuide theResource) {
+//    return getOperationOutcome(packageInstallerSvc.uninstall(new PackageInstallationSpec()
+//        .setPackageUrl(theResource.getUrl())
+//        .setName(theResource.getName())
+//        .setVersion(theResource.getVersion())));
+//  }
 
   public PackageInstallOutcomeJson load(ImplementationGuide theResource, PackageInstallOutcomeJson install) {
     PackageInstallOutcomeJson installOutcome = packageInstallerSvc.install(new PackageInstallationSpec()

@@ -93,13 +93,13 @@ public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
 		"StructureDefinition",
 		"ConceptMap",
 		"SearchParameter",
-		"Subscription"
+		"Subscription" // Clean
 	));
 
 	boolean enabled = true;
 	@Autowired
 	private FhirContext myFhirContext;
-	@Autowired
+	@Autowired // Try to instantiate
 	private DaoRegistry myDaoRegistry;
 	@Autowired
 	private IValidationSupport validationSupport;
@@ -109,8 +109,6 @@ public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
 	private PlatformTransactionManager myTxManager;
 	@Autowired
 	private INpmPackageVersionDao myPackageVersionDao;
-	@Autowired
-	private ISearchParamRegistry mySearchParamRegistry;
 	@Autowired
 	private ISearchParamRegistryController mySearchParamRegistryController;
 	@Autowired
@@ -125,6 +123,7 @@ public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
 	@PostConstruct
 	public void initialize() {
 		switch (myFhirContext.getVersion().getVersion()) {
+			//
 			case R5:
 			case R4:
 			case DSTU3:
@@ -141,18 +140,18 @@ public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
 	}
 	
   // MODIFIED: added
-  public PackageDeleteOutcomeJson uninstall(PackageInstallationSpec theInstallationSpec) throws ImplementationGuideInstallationException {
-    PackageInstallOutcomeJson retVal = new PackageInstallOutcomeJson();
-    boolean exists = new TransactionTemplate(myTxManager).execute(tx -> {
-      Optional<NpmPackageVersionEntity> existing = myPackageVersionDao.findByPackageIdAndVersion(theInstallationSpec.getName(), theInstallationSpec.getVersion());
-      return existing.isPresent();
-    });
-    if (exists) {
-        ourLog.info("Remove Package {}#{} because it is a package based on an external url", theInstallationSpec.getName(), theInstallationSpec.getVersion());
-        return myPackageCacheManager.uninstallPackage(theInstallationSpec.getName(), theInstallationSpec.getVersion());
-    }
-    return null;
-  }
+//  public PackageDeleteOutcomeJson uninstall(PackageInstallationSpec theInstallationSpec) throws ImplementationGuideInstallationException {
+//    PackageInstallOutcomeJson retVal = new PackageInstallOutcomeJson();
+//    boolean exists = new TransactionTemplate(myTxManager).execute(tx -> {
+//      Optional<NpmPackageVersionEntity> existing = myPackageVersionDao.findByPackageIdAndVersion(theInstallationSpec.getName(), theInstallationSpec.getVersion());
+//      return existing.isPresent();
+//    });
+//    if (exists) {
+//        ourLog.info("Remove Package {}#{} because it is a package based on an external url", theInstallationSpec.getName(), theInstallationSpec.getVersion());
+//        return myPackageCacheManager.uninstallPackage(theInstallationSpec.getName(), theInstallationSpec.getVersion());
+//    }
+//    return null;
+//  }
 
 	/**
 	 * Loads and installs an IG from a file on disk or the Simplifier repo using
@@ -173,6 +172,7 @@ public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
 		if (enabled) {
 			try {
 
+				// To clean
 				boolean exists = new TransactionTemplate(myTxManager).execute(tx -> {
 					Optional<NpmPackageVersionEntity> existing = myPackageVersionDao.findByPackageIdAndVersion(theInstallationSpec.getName(), theInstallationSpec.getVersion());
 					return existing.isPresent();
@@ -212,7 +212,7 @@ public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
 		return retVal;
 	}
 	
-	 private void addExtensionPackageUrl(IBaseResource newResource, String packageUrl ) {
+	private void addExtensionPackageUrl(IBaseResource newResource, String packageUrl ) {
 	    if (newResource instanceof IBaseHasExtensions) {
 	      IBaseExtension<?, ?> extension = ((IBaseHasExtensions) newResource).addExtension();
 	      extension.setUrl("http://ahdis.ch/fhir/extension/packageUrl");
@@ -222,8 +222,8 @@ public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
 	    }
 	  }
 	 // FIXME should maybe work independent of model
-   // Resource Bundle/history-IHE-formatcode.valueset not found, specified in path: ImplementationGuide.definition.resource.reference
-	 private IBaseResource filterImplementationGuideResources(IBaseResource newResource, List<String> installTypes ) {
+    // Resource Bundle/history-IHE-formatcode.valueset not found, specified in path: ImplementationGuide.definition.resource.reference
+	private IBaseResource filterImplementationGuideResources(IBaseResource newResource, List<String> installTypes ) {
 	   ImplementationGuide ig = (ImplementationGuide) newResource;
 	   ImplementationGuideDefinitionComponent definition = ig.getDefinition();
 	   if (definition!=null) {
@@ -602,9 +602,9 @@ public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
 		return nextDef != null;
 	}
 
-	@VisibleForTesting
-	void setFhirContextForUnitTest(FhirContext theCtx) {
-		myFhirContext = theCtx;
-	}
+//	@VisibleForTesting
+//	void setFhirContextForUnitTest(FhirContext theCtx) {
+//		myFhirContext = theCtx;
+//	}
 
 }

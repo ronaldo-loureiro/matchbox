@@ -166,7 +166,8 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
 
 
   private static final Logger ourLog = LoggerFactory.getLogger(ConvertingWorkerContext.class);
-  private final ValidationSupportContext myValidationSupportContext;
+
+  //private final ValidationSupportContext myValidationSupportContext;
 
 
   private final IVersionTypeConverter myModelConverter;
@@ -184,16 +185,16 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
   public ConvertingWorkerContext(IValidationSupport myValidationSupport)
       throws FileNotFoundException, IOException, FHIRException {
     super(new ValidationSupportContext(myValidationSupport), new VersionTypeConverterR4());
-    this.myValidationSupportContext = new ValidationSupportContext(myValidationSupport);
+//    this.myValidationSupportContext = new ValidationSupportContext(myValidationSupport);
     this.myModelConverter = new VersionTypeConverterR4();
     if (ConvertingWorkerContext.validatorFactory==null) {
       ConvertingWorkerContext.validatorFactory = new InstanceValidatorFactory();
     }
   }
 
-  public ValidationSupportContext getMyValidationSupportContext() {
-    return myValidationSupportContext;
-  }
+//  public ValidationSupportContext getMyValidationSupportContext() {
+//    return myValidationSupportContext;
+//  }
 
   public <T extends org.hl7.fhir.r4.model.Resource> T fetchResourceAsR4(Class<T> class_, String uri) {
     return (T) doFetchResource(class_, uri);
@@ -232,6 +233,7 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
   private <T extends IBaseResource> IBaseResource doFetchResource(@Nullable Class<T> theClass, String theUri) {
     IBaseResource myNoMatch = null;
     if (theClass == null || "Resource".equals(theClass.getSimpleName())) {
+		 // Simplify
       Supplier<IBaseResource>[] fetchers = new Supplier[] { () -> doFetchResource(ValueSet.class, theUri),
           () -> doFetchResource(CodeSystem.class, theUri), () -> doFetchResource(StructureDefinition.class, theUri),
           () -> doFetchResource(Questionnaire.class, theUri),() -> doFetchResource(ConceptMap.class, theUri) };
@@ -243,9 +245,9 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
     if (id.hasBaseUrl() == false && id.hasIdPart() == true) {
       localReference = true;
     }
-
-    String resourceName = myValidationSupportContext.getRootValidationSupport().getFhirContext()
-        .getResourceType(theClass);
+	 String resourceName = myFhirCtx.getResourceType(theClass);
+//    String resourceName = myValidationSupportContext.getRootValidationSupport().getFhirContext()
+//        .getResourceType(theClass);
     IBundleProvider search;
     switch (resourceName) {
     case "ValueSet":
@@ -276,13 +278,13 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
       break;
     case "StructureDefinition": {
       // Don't allow the core FHIR definitions to be overwritten
-      if (theUri.startsWith("http://hl7.org/fhir/StructureDefinition/")) {
-        String typeName = theUri.substring("http://hl7.org/fhir/StructureDefinition/".length());
-        if (myValidationSupportContext.getRootValidationSupport().getFhirContext()
-            .getElementDefinition(typeName) != null) {
-          return myNoMatch;
-        }
-      }
+//      if (theUri.startsWith("http://hl7.org/fhir/StructureDefinition/")) {
+//        String typeName = theUri.substring("http://hl7.org/fhir/StructureDefinition/".length());
+//        if (myValidationSupportContext.getRootValidationSupport().getFhirContext()
+//            .getElementDefinition(typeName) != null) {
+//          return myNoMatch;
+//        }
+//      }
       SearchParameterMap params = new SearchParameterMap();
       params.setLoadSynchronousUpTo(1);
       params.add(StructureDefinition.SP_URL, new UriParam(theUri));
