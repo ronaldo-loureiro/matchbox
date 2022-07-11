@@ -60,10 +60,8 @@ import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
  *
  */
 public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper {
-
   private List<org.hl7.fhir.r5.model.StructureDefinition> myAllStructures = null;
 
-  
   @Override
   // see Issue https://github.com/ahdis/matchbox/issues/48
   // ca.uhn.fhir.rest.server.exceptions.InternalErrorException: HAPI-0389: Failed to call access method: org.hl7.fhir.exceptions.FHIRException: Exception executing transform observation.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'social-history', 'Social History') on Rule "rule-11": HAPI-0667: Can not find resource of type ValueSet with uri http://terminology.hl7.org/CodeSystem/observation-category
@@ -164,17 +162,12 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
     return result;
   }
 
-
   private static final Logger ourLog = LoggerFactory.getLogger(ConvertingWorkerContext.class);
-
-  //private final ValidationSupportContext myValidationSupportContext;
-
 
   private final IVersionTypeConverter myModelConverter;
   
   static private IValidatorFactory validatorFactory = null;
   private XVerExtensionManager xverManager;
-
 
   @Autowired
   private DaoRegistry myDaoRegistry;
@@ -182,19 +175,13 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
   @Autowired
   protected FhirContext myFhirCtx;
 
-  public ConvertingWorkerContext(IValidationSupport myValidationSupport)
-      throws FileNotFoundException, IOException, FHIRException {
+  public ConvertingWorkerContext(IValidationSupport myValidationSupport) throws IOException, FHIRException {
     super(new ValidationSupportContext(myValidationSupport), new VersionTypeConverterR4());
-//    this.myValidationSupportContext = new ValidationSupportContext(myValidationSupport);
     this.myModelConverter = new VersionTypeConverterR4();
     if (ConvertingWorkerContext.validatorFactory==null) {
       ConvertingWorkerContext.validatorFactory = new InstanceValidatorFactory();
     }
   }
-
-//  public ValidationSupportContext getMyValidationSupportContext() {
-//    return myValidationSupportContext;
-//  }
 
   public <T extends org.hl7.fhir.r4.model.Resource> T fetchResourceAsR4(Class<T> class_, String uri) {
     return (T) doFetchResource(class_, uri);

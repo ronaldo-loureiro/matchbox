@@ -638,6 +638,12 @@ public class AppProperties {
     private String name;
     private String version;
 
+	 public ImplementationGuide(String url, String name, String version) {
+		 this.url = url;
+		 this.name = name;
+		 this.version = version;
+	 }
+
     public String getUrl() {
       return url;
     }

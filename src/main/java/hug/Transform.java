@@ -1,16 +1,14 @@
 package hug;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.sched.ISchedulerService;
-import ca.uhn.fhir.jpa.model.sched.ScheduledJobDefinition;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import ch.ahdis.fhir.hapi.jpa.validation.ImplementationGuideProvider;
 import ch.ahdis.fhir.hapi.jpa.validation.JpaExtendedValidationSupportChain;
-import ch.ahdis.matchbox.mappinglanguage.*;
-import org.apache.commons.lang3.time.DateUtils;
-import org.hl7.fhir.dstu2016may.formats.FhirFormat;
+import ch.ahdis.matchbox.mappinglanguage.ConvertingWorkerContext;
+import ch.ahdis.matchbox.mappinglanguage.ElementModelSorter;
+import ch.ahdis.matchbox.mappinglanguage.MatchboxStructureMapUtilities;
+import ch.ahdis.matchbox.mappinglanguage.TransformSupportServices;
 import org.hl7.fhir.exceptions.FHIRException;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r5.context.IWorkerContext;
 import org.hl7.fhir.r5.elementmodel.Element;
 import org.hl7.fhir.r5.elementmodel.JsonParser;
@@ -22,11 +20,7 @@ import org.hl7.fhir.r5.model.Property;
 import org.hl7.fhir.r5.model.StructureDefinition;
 import org.hl7.fhir.r5.model.StructureMap;
 import org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -38,7 +32,7 @@ public class Transform {
 
 	protected ConvertingWorkerContext baseWorkerContext;
 
-	private ImplementationGuideProvider igp;
+	protected ImplementationGuideProvider igp;
 
 	public Transform(FhirContext fhirContext, ImplementationGuideProvider igp, ConvertingWorkerContext baseWorkerContext) throws IOException {
 //		final var supportChain = new JpaExtendedValidationSupportChain(fhirContext);
@@ -48,7 +42,7 @@ public class Transform {
 		this.baseWorkerContext = baseWorkerContext;
 		this.igp = igp;
 
-		this.igp.loadAll(false);
+//		this.igp.loadAll();
 
 		try {
 			transform("http://fhir.ch/ig/cda-fhir-maps/StructureMap/CdaChEmedMedicationTreatmentPlanDocumentToBundle", Manager.FhirFormat.XML);
@@ -59,16 +53,6 @@ public class Transform {
 	}
 
 	public void transform(String source, Manager.FhirFormat format) throws IOException {
-//		String source = "http://fhir.ch/ig/cda-fhir-maps/StructureMap/CdaChEmedMedicationTreatmentPlanDocumentToBundle";
-
-		//File f = new File("./examples/StructureMap-BundleToCdaChEmedMedicationCardDocument.json");
-//		File f = new File("./examples/StructureMap-CdaChEmedMedicationTreatmentPlanDocumentToBundle.json");
-//		InputStream is = new FileInputStream(f);
-//
-//		ca.uhn.fhir.parser.IParser parser = baseWorkerContext.;
-//		IBaseResource ibr = parser.parseResource(is);
-//		org.hl7.fhir.r5.model.StructureMap map = baseWorkerContext.getTransform(ibr);
-
 		StructureMap map  = baseWorkerContext.getTransform(source);
 		if (map == null) {
 			throw new UnprocessableEntityException("Map not available with canonical url "+ source);
@@ -109,7 +93,7 @@ public class Transform {
 		OutputStream os = new OutputStream() {
 			private final StringBuilder strBuild = new StringBuilder();
 			@Override
-			public void write(int b) throws IOException {
+			public void write(int b) {
 				strBuild.append((char) b);
 			}
 
@@ -120,7 +104,6 @@ public class Transform {
 		};
 
 		try {
-
 			switch (src_format){
 				case XML:
 					new JsonParser(fhirContext).compose(r, os, IParser.OutputStyle.PRETTY, null);
