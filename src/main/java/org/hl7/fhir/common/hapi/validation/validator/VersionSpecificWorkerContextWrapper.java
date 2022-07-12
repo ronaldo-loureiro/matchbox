@@ -11,6 +11,7 @@ import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.PreconditionFailedException;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -58,11 +59,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWorkerContext {
 	public static final IVersionTypeConverter IDENTITY_VERSION_TYPE_CONVERTER = new VersionTypeConverterR5();
 	private static final Logger ourLog = LoggerFactory.getLogger(VersionSpecificWorkerContextWrapper.class);
-	private static final FhirContext ourR5Context = FhirContext.forR5();
 	private final ValidationSupportContext myValidationSupportContext;
 	private final IVersionTypeConverter myModelConverter;
 	private final LoadingCache<ResourceKey, IBaseResource> myFetchResourceCache;
-	private volatile List<StructureDefinition> myAllStructures;
 	private org.hl7.fhir.r5.model.Parameters myExpansionProfile;
 
 	public VersionSpecificWorkerContextWrapper(ValidationSupportContext theValidationSupportContext, IVersionTypeConverter theModelConverter) {
@@ -182,18 +181,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public void generateSnapshot(StructureDefinition input) throws FHIRException {
-		if (input.hasSnapshot()) {
-			return;
-		}
-
-		org.hl7.fhir.r5.conformance.ProfileUtilities.ProfileKnowledgeProvider profileKnowledgeProvider = new ProfileKnowledgeWorkerR5(ourR5Context);
-		ArrayList<ValidationMessage> messages = new ArrayList<>();
-		org.hl7.fhir.r5.model.StructureDefinition base = fetchResource(StructureDefinition.class, input.getBaseDefinition());
-		if (base == null) {
-			throw new PreconditionFailedException(Msg.code(658) + "Unknown base definition: " + input.getBaseDefinition());
-		}
-		new org.hl7.fhir.r5.conformance.ProfileUtilities(this, messages, profileKnowledgeProvider).generateSnapshot(base, input, "", null, "");
-
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -213,22 +201,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public List<StructureDefinition> allStructures() {
-
-		List<StructureDefinition> retVal = myAllStructures;
-		if (retVal == null) {
-			retVal = new ArrayList<>();
-			for (IBaseResource next : myValidationSupportContext.getRootValidationSupport().fetchAllStructureDefinitions()) {
-				try {
-					Resource converted = myModelConverter.toCanonical(next);
-					retVal.add((StructureDefinition) converted);
-				} catch (FHIRException e) {
-					throw new InternalErrorException(Msg.code(659) + e);
-				}
-			}
-			myAllStructures = retVal;
-		}
-
-		return retVal;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -278,27 +251,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public ValueSetExpander.ValueSetExpansionOutcome expandVS(org.hl7.fhir.r5.model.ValueSet source, boolean cacheOk, boolean Hierarchical) {
-		IBaseResource convertedSource;
-		try {
-			convertedSource = myModelConverter.fromCanonical(source);
-		} catch (FHIRException e) {
-			throw new InternalErrorException(Msg.code(661) + e);
-		}
-		IValidationSupport.ValueSetExpansionOutcome expanded = myValidationSupportContext.getRootValidationSupport().expandValueSet(myValidationSupportContext, null, convertedSource);
-
-		org.hl7.fhir.r5.model.ValueSet convertedResult = null;
-		if (expanded.getValueSet() != null) {
-			try {
-				convertedResult = (ValueSet) myModelConverter.toCanonical(expanded.getValueSet());
-			} catch (FHIRException e) {
-				throw new InternalErrorException(Msg.code(662) + e);
-			}
-		}
-
-		String error = expanded.getError();
-		ValueSetExpander.TerminologyServiceErrorClass result = null;
-
-		return new ValueSetExpander.ValueSetExpansionOutcome(convertedResult, error, result);
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -323,28 +276,12 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public org.hl7.fhir.r5.model.CodeSystem fetchCodeSystem(String system) {
-		IBaseResource fetched = myValidationSupportContext.getRootValidationSupport().fetchCodeSystem(system);
-		if (fetched == null) {
-			return null;
-		}
-		try {
-			return (org.hl7.fhir.r5.model.CodeSystem) myModelConverter.toCanonical(fetched);
-		} catch (FHIRException e) {
-			throw new InternalErrorException(Msg.code(665) + e);
-		}
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public CodeSystem fetchCodeSystem(String system, String verison) {
-		IBaseResource fetched = myValidationSupportContext.getRootValidationSupport().fetchCodeSystem(system);
-		if (fetched == null) {
-			return null;
-		}
-		try {
-			return (org.hl7.fhir.r5.model.CodeSystem) myModelConverter.toCanonical(fetched);
-		} catch (FHIRException e) {
-			throw new InternalErrorException(Msg.code(1992) + e);
-		}
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -368,11 +305,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public <T extends Resource> T fetchResourceWithException(Class<T> class_, String uri) throws FHIRException {
-		T retVal = fetchResource(class_, uri);
-		if (retVal == null) {
-			throw new FHIRException(Msg.code(667) + "Can not find resource of type " + class_.getSimpleName() + " with uri " + uri);
-		}
-		return retVal;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -412,7 +345,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public Set<String> getResourceNamesAsSet() {
-		return myValidationSupportContext.getRootValidationSupport().getFhirContext().getResourceTypes();
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -432,18 +365,12 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public StructureDefinition fetchTypeDefinition(String typeName) {
-		return fetchResource(StructureDefinition.class, "http://hl7.org/fhir/StructureDefinition/" + typeName);
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public StructureDefinition fetchRawProfile(String url) {
-		StructureDefinition retVal = fetchResource(StructureDefinition.class, url);
-
-		if (retVal != null && retVal.getSnapshot().isEmpty()) {
-			generateSnapshot(retVal);
-		}
-
-		return retVal;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -543,25 +470,12 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public ValidationResult validateCode(ValidationOptions theOptions, String system, String version, String code, String display) {
-		ConceptValidationOptions validationOptions = convertConceptValidationOptions(theOptions);
-		return doValidation(null, validationOptions, system, code, display);
+		throw  new NotImplementedException();
 	}
 
 	@Override
 	public ValidationResult validateCode(ValidationOptions theOptions, String theSystem, String version, String theCode, String display, ValueSet theValueSet) {
-		IBaseResource convertedVs = null;
-
-		try {
-			if (theValueSet != null) {
-				convertedVs = myModelConverter.fromCanonical(theValueSet);
-			}
-		} catch (FHIRException e) {
-			throw new InternalErrorException(Msg.code(689) + e);
-		}
-
-		ConceptValidationOptions validationOptions = convertConceptValidationOptions(theOptions);
-
-		return doValidation(convertedVs, validationOptions, theSystem, theCode, display);
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -634,10 +548,6 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 		}
 
 		return new ValidationResult(ValidationMessage.IssueSeverity.ERROR, null);
-	}
-
-	public void invalidateCaches() {
-		myFetchResourceCache.invalidateAll();
 	}
 
 	public interface IVersionTypeConverter {

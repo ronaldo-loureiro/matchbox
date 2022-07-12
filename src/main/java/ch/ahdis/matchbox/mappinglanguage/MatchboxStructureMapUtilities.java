@@ -51,20 +51,8 @@ import org.jboss.logging.Logger;
  */
 public class MatchboxStructureMapUtilities extends StructureMapUtilities {
 
-	public MatchboxStructureMapUtilities(IWorkerContext worker) {
-		super(worker);
-
-	}
-
-	public MatchboxStructureMapUtilities(IWorkerContext worker, ITransformerServices services,
-			ProfileKnowledgeProvider pkp) {
-		super(worker, services, pkp);
-
-	}
-
 	public MatchboxStructureMapUtilities(IWorkerContext worker, ITransformerServices services) {
 		super(worker, services);
-
 	}
 
 	@Override

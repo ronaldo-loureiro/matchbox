@@ -15,19 +15,13 @@ public class Config {
 
 	@Autowired
 	ConvertingWorkerContext convertingWorkerContext;
-/*
-	@Autowired
-	private ISchedulerService mySvc;*/
-
-	@Autowired
-	private FhirContext fhirContext;
 
 	@Autowired
 	private ImplementationGuideProvider igp;
 
 	@Bean
 	public Transform transformBean() throws IOException {
-		return new Transform(fhirContext, igp, convertingWorkerContext);
+		return new Transform(igp, convertingWorkerContext);
 	}
 
 

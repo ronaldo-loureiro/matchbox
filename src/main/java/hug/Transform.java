@@ -20,6 +20,7 @@ import org.hl7.fhir.r5.model.Property;
 import org.hl7.fhir.r5.model.StructureDefinition;
 import org.hl7.fhir.r5.model.StructureMap;
 import org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities;
+import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -34,12 +35,13 @@ public class Transform {
 
 	protected ImplementationGuideProvider igp;
 
-	public Transform(FhirContext fhirContext, ImplementationGuideProvider igp, ConvertingWorkerContext baseWorkerContext) throws IOException {
+	public Transform(ImplementationGuideProvider igp, ConvertingWorkerContext baseWorkerContext) throws IOException {
 //		final var supportChain = new JpaExtendedValidationSupportChain(fhirContext);
 //		supportChain.postConstruct();
 //		this.baseWorkerContext = new ConvertingWorkerContext(supportChain);
 
 		this.baseWorkerContext = baseWorkerContext;
+//		AnnotationConfigServletWebServerApplicationContext a = new AnnotationConfigServletWebServerApplicationContext();
 		this.igp = igp;
 
 //		this.igp.loadAll();
