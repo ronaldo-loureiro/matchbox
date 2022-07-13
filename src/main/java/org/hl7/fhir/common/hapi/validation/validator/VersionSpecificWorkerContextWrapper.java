@@ -1,14 +1,11 @@
 package org.hl7.fhir.common.hapi.validation.validator;
 
-import ca.uhn.fhir.i18n.Msg;
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.context.FhirVersionEnum;
 import ca.uhn.fhir.context.support.ConceptValidationOptions;
 import ca.uhn.fhir.context.support.IValidationSupport;
 import ca.uhn.fhir.context.support.ValidationSupportContext;
+import ca.uhn.fhir.i18n.Msg;
 import ca.uhn.fhir.rest.api.Constants;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
-import ca.uhn.fhir.rest.server.exceptions.PreconditionFailedException;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.NotImplementedException;
@@ -17,20 +14,13 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.time.DateUtils;
 import org.fhir.ucum.UcumService;
-import org.hl7.fhir.convertors.advisors.impl.BaseAdvisor_10_50;
-import org.hl7.fhir.convertors.factory.VersionConvertorFactory_10_50;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.exceptions.TerminologyServiceException;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r5.context.IWorkerContext;
 import org.hl7.fhir.r5.formats.IParser;
 import org.hl7.fhir.r5.formats.ParserType;
-import org.hl7.fhir.r5.model.CanonicalResource;
-import org.hl7.fhir.r5.model.CodeSystem;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.Resource;
-import org.hl7.fhir.r5.model.StructureDefinition;
-import org.hl7.fhir.r5.model.ValueSet;
+import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.terminologies.ValueSetExpander;
 import org.hl7.fhir.r5.utils.validation.IResourceValidator;
 import org.hl7.fhir.r5.utils.validation.ValidationContextCarrier;
@@ -46,18 +36,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+//!\\ Only work with the R4 fhir version
+
 public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWorkerContext {
-	public static final IVersionTypeConverter IDENTITY_VERSION_TYPE_CONVERTER = new VersionTypeConverterR5();
 	private static final Logger ourLog = LoggerFactory.getLogger(VersionSpecificWorkerContextWrapper.class);
 	private final ValidationSupportContext myValidationSupportContext;
 	private final IVersionTypeConverter myModelConverter;
@@ -69,7 +56,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 		myModelConverter = theModelConverter;
 
 		// see https://github.com/ahdis/matchbox/issues/51, otherwise an update of a structuredefinition takes 10 second
-    // long timeoutMillis = 10 * DateUtils.MILLIS_PER_SECOND;
+		// long timeoutMillis = 10 * DateUtils.MILLIS_PER_SECOND;
 		long timeoutMillis = 1 * DateUtils.MILLIS_PER_SECOND;
 		if (System.getProperties().containsKey(ca.uhn.fhir.rest.api.Constants.TEST_SYSTEM_PROP_VALIDATION_RESOURCE_CACHES_MS)) {
 			timeoutMillis = Long.parseLong(System.getProperty(Constants.TEST_SYSTEM_PROP_VALIDATION_RESOURCE_CACHES_MS));
@@ -81,11 +68,6 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 			.build(key -> {
 
 				String fetchResourceName = key.getResourceName();
-				if (myValidationSupportContext.getRootValidationSupport().getFhirContext().getVersion().getVersion() == FhirVersionEnum.DSTU2) {
-					if ("CodeSystem".equals(fetchResourceName)) {
-						fetchResourceName = "ValueSet";
-					}
-				}
 
 				Class<? extends IBaseResource> fetchResourceType;
 				if (fetchResourceName.equals("Resource")) {
@@ -112,6 +94,19 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 			});
 
 		setValidationMessageLanguage(getLocale());
+	}
+
+	public static ConceptValidationOptions convertConceptValidationOptions(ValidationOptions theOptions) {
+		ConceptValidationOptions retVal = new ConceptValidationOptions();
+		if (theOptions.isGuessSystem()) {
+			retVal = retVal.setInferSystem(true);
+		}
+		return retVal;
+	}
+
+	@Nonnull
+	public static VersionSpecificWorkerContextWrapper newVersionSpecificWorkerContextWrapper(IValidationSupport theValidationSupport) {
+		return new VersionSpecificWorkerContextWrapper(new ValidationSupportContext(theValidationSupport), new VersionTypeConverterR4());
 	}
 
 	@Override
@@ -470,7 +465,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public ValidationResult validateCode(ValidationOptions theOptions, String system, String version, String code, String display) {
-		throw  new NotImplementedException();
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -550,6 +545,11 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 		return new ValidationResult(ValidationMessage.IssueSeverity.ERROR, null);
 	}
 
+	@Override
+	public List<String> getCanonicalResourceNames() {
+		return null;
+	}
+
 	public interface IVersionTypeConverter {
 
 		org.hl7.fhir.r5.model.Resource toCanonical(IBaseResource theNonCanonical);
@@ -603,89 +603,6 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 			return myHashCode;
 		}
 	}
-
-	private static class VersionTypeConverterR5 implements IVersionTypeConverter {
-		@Override
-		public Resource toCanonical(IBaseResource theNonCanonical) {
-			return (Resource) theNonCanonical;
-		}
-
-		@Override
-		public IBaseResource fromCanonical(Resource theCanonical) {
-			return theCanonical;
-		}
-	}
-
-	public static ConceptValidationOptions convertConceptValidationOptions(ValidationOptions theOptions) {
-		ConceptValidationOptions retVal = new ConceptValidationOptions();
-		if (theOptions.isGuessSystem()) {
-			retVal = retVal.setInferSystem(true);
-		}
-		return retVal;
-	}
-
-	@Nonnull
-	public static VersionSpecificWorkerContextWrapper newVersionSpecificWorkerContextWrapper(IValidationSupport theValidationSupport) {
-		IVersionTypeConverter converter;
-
-		switch (theValidationSupport.getFhirContext().getVersion().getVersion()) {
-			case DSTU2:
-			case DSTU2_HL7ORG: {
-				converter = new IVersionTypeConverter() {
-					@Override
-					public Resource toCanonical(IBaseResource theNonCanonical) {
-						Resource retVal = VersionConvertorFactory_10_50.convertResource((org.hl7.fhir.dstu2.model.Resource) theNonCanonical, new BaseAdvisor_10_50(false));
-						if (theNonCanonical instanceof org.hl7.fhir.dstu2.model.ValueSet) {
-							org.hl7.fhir.dstu2.model.ValueSet valueSet = (org.hl7.fhir.dstu2.model.ValueSet) theNonCanonical;
-							if (valueSet.hasCodeSystem() && valueSet.getCodeSystem().hasSystem()) {
-								if (!valueSet.hasCompose()) {
-									ValueSet valueSetR5 = (ValueSet) retVal;
-									valueSetR5.getCompose().addInclude().setSystem(valueSet.getCodeSystem().getSystem());
-								}
-							}
-						}
-						return retVal;
-					}
-
-					@Override
-					public IBaseResource fromCanonical(Resource theCanonical) {
-						return VersionConvertorFactory_10_50.convertResource(theCanonical, new BaseAdvisor_10_50(false));
-					}
-				};
-				break;
-			}
-
-			case DSTU2_1: {
-				converter = new VersionTypeConverterDstu21();
-				break;
-			}
-
-			case DSTU3: {
-				converter = new VersionTypeConverterDstu3();
-				break;
-			}
-
-			case R4: {
-				converter = new VersionTypeConverterR4();
-				break;
-			}
-
-			case R5: {
-				converter = IDENTITY_VERSION_TYPE_CONVERTER;
-				break;
-			}
-
-			default:
-				throw new IllegalStateException(Msg.code(692));
-		}
-
-		return new VersionSpecificWorkerContextWrapper(new ValidationSupportContext(theValidationSupport), converter);
-	}
-
-  @Override
-  public List<String> getCanonicalResourceNames() {
-    return null;
-  }
 }
 
 

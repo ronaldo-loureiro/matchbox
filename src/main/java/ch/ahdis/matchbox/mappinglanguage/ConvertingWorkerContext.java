@@ -13,6 +13,7 @@ import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
+import ch.ahdis.fhir.hapi.jpa.validation.JpaExtendedValidationSupportChain;
 import org.hl7.fhir.common.hapi.validation.validator.VersionSpecificWorkerContextWrapper;
 import org.hl7.fhir.common.hapi.validation.validator.VersionTypeConverterR4;
 import org.hl7.fhir.exceptions.FHIRException;
@@ -56,7 +57,7 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
 	private List<org.hl7.fhir.r5.model.StructureDefinition> myAllStructures = null;
 	private DaoRegistry myDaoRegistry;
 
-	public ConvertingWorkerContext(IValidationSupport myValidationSupport) throws IOException, FHIRException {
+	public ConvertingWorkerContext(JpaExtendedValidationSupportChain myValidationSupport) throws IOException, FHIRException {
 		super(new ValidationSupportContext(myValidationSupport), new VersionTypeConverterR4());
 		this.myModelConverter = new VersionTypeConverterR4();
 		if (ConvertingWorkerContext.validatorFactory == null) {

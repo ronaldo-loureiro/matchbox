@@ -48,16 +48,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  *
  * @author alexander kreutz
  */
-public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
+public class MatchboxPackageInstallerImpl {
 
 	private static final Logger ourLog = LoggerFactory.getLogger(MatchboxPackageInstallerImpl.class);
-	public static List<String> DEFAULT_INSTALL_TYPES = Collections.unmodifiableList(Lists.newArrayList(
-		"NamingSystem",
-		"CodeSystem",
-		"ValueSet",
-		"StructureDefinition",
-		"ConceptMap"
-	));
 
 	@Autowired
 	private ApplicationContext appCtx;
@@ -134,12 +127,7 @@ public class MatchboxPackageInstallerImpl implements IPackageInstallerSvc {
 		String currentFhirVersion = myFhirContext.getVersion().getVersion().getFhirVersionString();
 		assertFhirVersionsAreCompatible(fhirVersion, currentFhirVersion);
 
-		List<String> installTypes;
-		if (!theInstallationSpec.getInstallResourceTypes().isEmpty()) {
-			installTypes = theInstallationSpec.getInstallResourceTypes();
-		} else {
-			installTypes = DEFAULT_INSTALL_TYPES;
-		}
+		List<String> installTypes = theInstallationSpec.getInstallResourceTypes();
 
 		ourLog.info("Installing package: {}#{}", name, version);
 		int[] count = new int[installTypes.size()];

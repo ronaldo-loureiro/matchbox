@@ -2,7 +2,6 @@ package ch.ahdis.fhir.hapi.jpa.validation;
 
 import ca.uhn.fhir.jpa.packages.PackageInstallOutcomeJson;
 import ca.uhn.fhir.jpa.packages.PackageInstallationSpec;
-import ca.uhn.fhir.jpa.rp.r4.ImplementationGuideResourceProvider;
 import ca.uhn.fhir.jpa.starter.AppProperties;
 import ch.ahdis.matchbox.util.MatchboxPackageInstallerImpl;
 import org.hl7.fhir.r4.model.ImplementationGuide;
@@ -11,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ImplementationGuideProvider extends ImplementationGuideResourceProvider {
+public class ImplementationGuideProvider {
 
 	@Autowired
 	MatchboxPackageInstallerImpl packageInstallerSvc;
