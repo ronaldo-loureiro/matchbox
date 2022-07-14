@@ -61,7 +61,7 @@ public class FhirServerConfigR4 {
 	@Bean(name = JpaConfig.JPA_VALIDATION_SUPPORT_CHAIN)
 	@Primary
 	public JpaExtendedValidationSupportChain jpaValidationSupportChain() {
-		return new JpaExtendedValidationSupportChain(fhirContext);
+		return new JpaExtendedValidationSupportChain();
 	}
 
 	@Bean(name = "myInstanceValidator")

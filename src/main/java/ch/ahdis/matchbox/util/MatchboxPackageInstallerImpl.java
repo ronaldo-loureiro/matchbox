@@ -62,8 +62,6 @@ public class MatchboxPackageInstallerImpl {
 
 	private DaoRegistry myDaoRegistry;
 
-	private PartitionSettings myPartitionSettings;
-
 	/**
 	 * Constructor
 	 */
@@ -76,7 +74,6 @@ public class MatchboxPackageInstallerImpl {
 	private void postConstruct() {
 		this.myDaoRegistry = new DaoRegistry(this.myFhirContext);
 		this.myDaoRegistry.setApplicationContext(appCtx);
-		this.myPartitionSettings = new PartitionSettings();
 	}
 
 	/**
@@ -123,10 +120,6 @@ public class MatchboxPackageInstallerImpl {
 		String name = npmPackage.getNpm().get("name").getAsString();
 		String version = npmPackage.getNpm().get("version").getAsString();
 
-		String fhirVersion = npmPackage.fhirVersion();
-		String currentFhirVersion = myFhirContext.getVersion().getVersion().getFhirVersionString();
-		assertFhirVersionsAreCompatible(fhirVersion, currentFhirVersion);
-
 		List<String> installTypes = theInstallationSpec.getInstallResourceTypes();
 
 		ourLog.info("Installing package: {}#{}", name, version);
@@ -147,7 +140,6 @@ public class MatchboxPackageInstallerImpl {
 				}
 			}
 		}
-
 
 		// Modified add log
 		String log = String.format("Finished installation of package %s#%s:", name, version);
@@ -170,34 +162,11 @@ public class MatchboxPackageInstallerImpl {
 	}
 
 	/**
-	 * Asserts if package FHIR version is compatible with current FHIR version
-	 * by using semantic versioning rules.
-	 */
-	private void assertFhirVersionsAreCompatible(String fhirVersion, String currentFhirVersion)
-		throws ImplementationGuideInstallationException {
-
-		FhirVersionEnum fhirVersionEnum = FhirVersionEnum.forVersionString(fhirVersion);
-		FhirVersionEnum currentFhirVersionEnum = FhirVersionEnum.forVersionString(currentFhirVersion);
-		Validate.notNull(fhirVersionEnum, "Invalid FHIR version string: %s", fhirVersion);
-		Validate.notNull(currentFhirVersionEnum, "Invalid FHIR version string: %s", currentFhirVersion);
-		boolean compatible = fhirVersionEnum.equals(currentFhirVersionEnum);
-		if (!compatible) {
-			throw new ImplementationGuideInstallationException(String.format(
-				"Cannot install implementation guide: FHIR versions mismatch (expected <=%s, package uses %s)",
-				currentFhirVersion, fhirVersion));
-		}
-	}
-
-	/**
 	 * ============================= Utility methods ===============================
 	 */
 
 	// MODIFIED: This method has been reimplemented: also add example folder 
 	private List<IBaseResource> parseResourcesOfType(String type, NpmPackage pkg) {
-		if (!pkg.getFolders().containsKey("package")) {
-			return Collections.emptyList();
-		}
-
 		ArrayList<IBaseResource> resources = new ArrayList<>();
 
 		addFolder(type, pkg.getFolders().get("package"), resources);
@@ -239,12 +208,6 @@ public class MatchboxPackageInstallerImpl {
 				ourLog.debug("Creating new resource matching {}", map.toNormalizedQueryString(myFhirContext));
 				theOutcome.incrementResourcesInstalled(myFhirContext.getResourceType(theResource));
 
-				IIdType id = theResource.getIdElement();
-
-				if (id.isIdPartValidLong()) {
-					String newIdPart = "npm-" + id.getIdPart();
-					id.setParts(id.getBaseUrl(), id.getResourceType(), newIdPart, id.getVersionIdPart());
-				}
 				updateResource(dao, theResource);
 				ourLog.debug("Created resource with existing id");
 
@@ -261,45 +224,15 @@ public class MatchboxPackageInstallerImpl {
 	}
 
 	private IBundleProvider searchResource(IFhirResourceDao theDao, SearchParameterMap theMap) {
-		if (myPartitionSettings.isPartitioningEnabled()) {
-			SystemRequestDetails requestDetails = new SystemRequestDetails();
-//			requestDetails.setTenantId(JpaConstants.DEFAULT_PARTITION_NAME);
-			return theDao.search(theMap, requestDetails);
-		} else {
-			return theDao.search(theMap);
-		}
+		return theDao.search(theMap);
 	}
 
 	private DaoMethodOutcome updateResource(IFhirResourceDao theDao, IBaseResource theResource) {
-		if (myPartitionSettings.isPartitioningEnabled()) {
-			SystemRequestDetails requestDetails = new SystemRequestDetails();
-			requestDetails.setTenantId(JpaConstants.DEFAULT_PARTITION_NAME);
-			return theDao.update(theResource, requestDetails);
-		} else {
-			return theDao.update(theResource);
-		}
+		return theDao.update(theResource);
 	}
 
 	// MODIFIED: This method has been modified: Also allow Resources with status "draft"
 	boolean validForUpload(IBaseResource theResource) {
-		String resourceType = myFhirContext.getResourceType(theResource);
-		if ("SearchParameter".equals(resourceType)) {
-
-			String code = SearchParameterUtil.getCode(myFhirContext, theResource);
-			if (defaultString(code).startsWith("_")) {
-				return false;
-			}
-
-			String expression = SearchParameterUtil.getExpression(myFhirContext, theResource);
-			if (isBlank(expression)) {
-				return false;
-			}
-
-			if (SearchParameterUtil.getBaseAsStrings(myFhirContext, theResource).isEmpty()) {
-				return false;
-			}
-		}
-
 		List<IPrimitiveType> statusTypes = myFhirContext.newFhirPath().evaluate(theResource, "status", IPrimitiveType.class);
 		if (statusTypes.size() > 0) {
 			// Modified condition

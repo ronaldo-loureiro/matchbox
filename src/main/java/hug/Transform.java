@@ -7,6 +7,7 @@ import ch.ahdis.fhir.hapi.jpa.validation.JpaExtendedValidationSupportChain;
 import ch.ahdis.matchbox.mappinglanguage.ConvertingWorkerContext;
 import ch.ahdis.matchbox.mappinglanguage.ElementModelSorter;
 import ch.ahdis.matchbox.mappinglanguage.MatchboxStructureMapUtilities;
+//import ch.ahdis.matchbox.mappinglanguage.TransformSupportServices;
 import ch.ahdis.matchbox.mappinglanguage.TransformSupportServices;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.r5.context.IWorkerContext;
@@ -21,15 +22,12 @@ import org.hl7.fhir.r5.model.StructureDefinition;
 import org.hl7.fhir.r5.model.StructureMap;
 import org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities;
 import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
-import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 public class Transform {
-
 
 	protected ConvertingWorkerContext baseWorkerContext;
 
@@ -41,10 +39,10 @@ public class Transform {
 //		this.baseWorkerContext = new ConvertingWorkerContext(supportChain);
 
 		this.baseWorkerContext = baseWorkerContext;
-//		AnnotationConfigServletWebServerApplicationContext a = new AnnotationConfigServletWebServerApplicationContext();
+//		AnnotationConfigServletWebServerApplicationContext a = new AnnotationConfigServletWebServerApplicationContext(Config.class);
 		this.igp = igp;
 
-//		this.igp.loadAll();
+		this.igp.loadAll();
 
 		try {
 			transform("http://fhir.ch/ig/cda-fhir-maps/StructureMap/CdaChEmedMedicationTreatmentPlanDocumentToBundle", Manager.FhirFormat.XML);

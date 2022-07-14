@@ -17,9 +17,9 @@ public class JpaExtendedValidationSupportChain extends JpaValidationSupportChain
 	public IValidationSupport myJpaValidationSupport;
 	private IValidationSupport myDefaultProfileValidationSupport;
 
-	public JpaExtendedValidationSupportChain(FhirContext theFhirContext) {
-		super(theFhirContext);
-		this.myFhirContext = theFhirContext;
+	public JpaExtendedValidationSupportChain() {
+		super(FhirContext.forR4());
+		this.myFhirContext = FhirContext.forR4();
 	}
 
 	@PostConstruct

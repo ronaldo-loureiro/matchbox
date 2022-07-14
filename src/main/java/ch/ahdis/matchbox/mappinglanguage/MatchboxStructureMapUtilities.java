@@ -176,13 +176,6 @@ public class MatchboxStructureMapUtilities extends StructureMapUtilities {
 				throw new FHIRException(message);
 			if (outcome == null)
 				return null;
-//			if ("code".equals(fieldToReturn) && (outcome instanceof Coding))
-//				return new CodeType(((Coding) outcome).getCode());
-//			else if ("code".equals(fieldToReturn) && (outcome instanceof CodeableConcept)
-//					&& ((CodeableConcept) outcome).getCoding().size() > 0)
-//				return new CodeType(((CodeableConcept) outcome).getCodingFirstRep().getCode());
-//			else
-//				return outcome;
 
 			// check if outcome is Coding
 			if (outcome instanceof Coding) {

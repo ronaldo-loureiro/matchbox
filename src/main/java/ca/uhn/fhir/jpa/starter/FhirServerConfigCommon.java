@@ -118,16 +118,4 @@ public class FhirServerConfigCommon {
 		modelConfig.setIndexIdentifierOfType(appProperties.getEnable_index_of_type());
 		return modelConfig;
 	}
-
-	@Lazy
-	@Bean
-	public IBinaryStorageSvc binaryStorageSvc(AppProperties appProperties) {
-		DatabaseBlobBinaryStorageSvcImpl binaryStorageSvc = new DatabaseBlobBinaryStorageSvcImpl();
-
-		if (appProperties.getMax_binary_size() != null) {
-			binaryStorageSvc.setMaximumBinarySize(appProperties.getMax_binary_size());
-		}
-
-		return binaryStorageSvc;
-	}
 }
