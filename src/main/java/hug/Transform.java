@@ -1,13 +1,10 @@
 package hug;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import ch.ahdis.fhir.hapi.jpa.validation.ImplementationGuideProvider;
-import ch.ahdis.fhir.hapi.jpa.validation.JpaExtendedValidationSupportChain;
 import ch.ahdis.matchbox.mappinglanguage.ConvertingWorkerContext;
 import ch.ahdis.matchbox.mappinglanguage.ElementModelSorter;
 import ch.ahdis.matchbox.mappinglanguage.MatchboxStructureMapUtilities;
-//import ch.ahdis.matchbox.mappinglanguage.TransformSupportServices;
 import ch.ahdis.matchbox.mappinglanguage.TransformSupportServices;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.r5.context.IWorkerContext;
@@ -21,7 +18,6 @@ import org.hl7.fhir.r5.model.Property;
 import org.hl7.fhir.r5.model.StructureDefinition;
 import org.hl7.fhir.r5.model.StructureMap;
 import org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities;
-import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -34,12 +30,7 @@ public class Transform {
 	protected ImplementationGuideProvider igp;
 
 	public Transform(ImplementationGuideProvider igp, ConvertingWorkerContext baseWorkerContext) throws IOException {
-//		final var supportChain = new JpaExtendedValidationSupportChain(fhirContext);
-//		supportChain.postConstruct();
-//		this.baseWorkerContext = new ConvertingWorkerContext(supportChain);
-
 		this.baseWorkerContext = baseWorkerContext;
-//		AnnotationConfigServletWebServerApplicationContext a = new AnnotationConfigServletWebServerApplicationContext(Config.class);
 		this.igp = igp;
 
 		this.igp.loadAll();

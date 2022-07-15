@@ -23,7 +23,4 @@ public class Config {
 	public Transform transformBean() throws IOException {
 		return new Transform(igp, convertingWorkerContext);
 	}
-
-
-
 }

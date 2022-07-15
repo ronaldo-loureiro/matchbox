@@ -180,28 +180,7 @@ public class MatchboxStructureMapUtilities extends StructureMapUtilities {
 			// check if outcome is Coding
 			if (outcome instanceof Coding) {
 				if ("code".equals(fieldToReturn)) {
-					return new CodeType(((Coding) outcome).getCode()).setSystem(((Coding) outcome).getSystem());// new
-																												// CodeType(((Coding)
-																												// outcome).getCode());
-				} else if ("system".equals(fieldToReturn)) {
-					return new StringType(((Coding) outcome).getSystem());
-				} else if ("display".equals(fieldToReturn)) {
-					return new StringType(((Coding) outcome).getDisplay());
-				} else if ("CodeableConcept".equals(fieldToReturn)) {
-					return new CodeableConcept(((Coding) outcome));
-				}
-			}
-			// check if outcome is CodeableConcept and size>0
-			if ((outcome instanceof CodeableConcept) && ((CodeableConcept) outcome).getCoding().size() > 0) {
-				if ("code".equals(fieldToReturn)) {
-					return new CodeType(((CodeableConcept) outcome).getCodingFirstRep().getCode())
-							.setSystem(((CodeableConcept) outcome).getCodingFirstRep().getSystem());
-				} else if ("system".equals(fieldToReturn)) {
-					return new StringType(((CodeableConcept) outcome).getCodingFirstRep().getSystem());
-				} else if ("display".equals(fieldToReturn)) {
-					return new StringType(((CodeableConcept) outcome).getCodingFirstRep().getDisplay());
-				} else if ("Coding".equals(fieldToReturn)) {
-					return ((CodeableConcept) outcome).getCodingFirstRep();
+					return new CodeType(((Coding) outcome).getCode()).setSystem(((Coding) outcome).getSystem());
 				}
 			}
 			return outcome;

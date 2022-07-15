@@ -31,19 +31,9 @@ import javax.sql.DataSource;
 @Configuration
 public class StarterJpaConfig {
 //	@Bean
-//	public IFulltextSearchSvc fullTextSearchSvc() {
-//		return new FulltextSearchSvcImpl();
+//	public BatchConfigurer batchConfigurer() {
+//		return new NonPersistedBatchConfigurer();
 //	}
-
-//	@Bean
-//	public IStaleSearchDeletingSvc staleSearchDeletingSvc() {
-//		return new StaleSearchDeletingSvcImpl();
-//	}
-
-	@Bean
-	public BatchConfigurer batchConfigurer() {
-		return new NonPersistedBatchConfigurer();
-	}
 
 	@Autowired
 	AppProperties appProperties;
@@ -69,11 +59,6 @@ public class StarterJpaConfig {
 		return new DaoRegistryResourceSupportedSvc(theDaoRegistry);
 	}
 
-	@Bean(name = "myResourceCountsCache")
-	public ResourceCountCache resourceCountsCache(IFhirSystemDao<?, ?> theSystemDao) {
-		return ResourceCountCacheUtil.newResourceCountCache(theSystemDao);
-	}
-
 	@Primary
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory(
@@ -87,14 +72,6 @@ public class StarterJpaConfig {
 			throw new ConfigurationException("Could not set the data source due to a configuration issue", e);
 		}
 		retVal.setJpaProperties(EnvironmentHelper.getHibernateProperties(configurableEnvironment, myConfigurableListableBeanFactory));
-		return retVal;
-	}
-
-	@Bean
-	@Primary
-	public JpaTransactionManager hapiTransactionManager(EntityManagerFactory entityManagerFactory) {
-		JpaTransactionManager retVal = new JpaTransactionManager();
-		retVal.setEntityManagerFactory(entityManagerFactory);
 		return retVal;
 	}
 }

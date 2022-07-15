@@ -5,7 +5,6 @@ import ca.uhn.fhir.context.support.DefaultProfileValidationSupport;
 import ca.uhn.fhir.context.support.ValidationSupportContext;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
-import ca.uhn.fhir.rest.annotation.ResourceParam;
 import ca.uhn.fhir.rest.api.SortOrderEnum;
 import ca.uhn.fhir.rest.api.SortSpec;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
@@ -13,7 +12,6 @@ import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ch.ahdis.fhir.hapi.jpa.validation.JpaExtendedValidationSupportChain;
-import hug.Config;
 import org.hl7.fhir.common.hapi.validation.validator.VersionSpecificWorkerContextWrapper;
 import org.hl7.fhir.common.hapi.validation.validator.VersionTypeConverterR4;
 import org.hl7.fhir.exceptions.FHIRException;
@@ -33,7 +31,6 @@ import org.hl7.fhir.validation.instance.InstanceValidatorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Nullable;
@@ -55,7 +52,7 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
 	protected FhirContext myFhirCtx;
 	@Autowired
 	ApplicationContext applicationContext;
-	private List<org.hl7.fhir.r5.model.StructureDefinition> myAllStructures = null;
+	private List<StructureDefinition> myAllStructures = null;
 	private DaoRegistry myDaoRegistry;
 
 	public ConvertingWorkerContext(JpaExtendedValidationSupportChain myValidationSupport) throws IOException, FHIRException {
@@ -65,11 +62,11 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
 			ConvertingWorkerContext.validatorFactory = new InstanceValidatorFactory();
 		}
 		this.myFhirCtx = FhirContext.forR4();
+		this.myDaoRegistry = new DaoRegistry(this.myFhirCtx);
 	}
 
 	@PostConstruct
 	private void postConstruct() {
-		this.myDaoRegistry = new DaoRegistry(this.myFhirCtx);
 		this.myDaoRegistry.setApplicationContext(this.applicationContext);
 	}
 
@@ -149,7 +146,7 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
 		return (T) doFetchResource(class_, uri);
 	}
 
-	public StructureMap fixMap(@ResourceParam StructureMap theResource) {
+	public StructureMap fixMap(StructureMap theResource) {
 		if (theResource != null) {
 			// don't know why a # is prefixed to the contained it
 			for (org.hl7.fhir.r5.model.Resource r : theResource.getContained()) {

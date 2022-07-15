@@ -49,7 +49,6 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 	private final ValidationSupportContext myValidationSupportContext;
 	private final IVersionTypeConverter myModelConverter;
 	private final LoadingCache<ResourceKey, IBaseResource> myFetchResourceCache;
-	private org.hl7.fhir.r5.model.Parameters myExpansionProfile;
 
 	public VersionSpecificWorkerContextWrapper(ValidationSupportContext theValidationSupportContext, IVersionTypeConverter theModelConverter) {
 		myValidationSupportContext = theValidationSupportContext;
@@ -186,13 +185,11 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public org.hl7.fhir.r5.model.Parameters getExpansionParameters() {
-		return myExpansionProfile;
+		return null;
 	}
 
 	@Override
-	public void setExpansionProfile(org.hl7.fhir.r5.model.Parameters expParameters) {
-		myExpansionProfile = expParameters;
-	}
+	public void setExpansionProfile(org.hl7.fhir.r5.model.Parameters expParameters) {}
 
 	@Override
 	public List<StructureDefinition> allStructures() {
