@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Import;
 @SpringBootApplication(exclude = {ElasticsearchRestClientAutoConfiguration.class})
 @Import({
 	Config.class,
-	Transform.class,
 	SubscriptionSubmitterConfig.class,
 	SubscriptionProcessorConfig.class,
 	SubscriptionChannelConfig.class

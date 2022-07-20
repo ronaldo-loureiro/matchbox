@@ -1,11 +1,7 @@
 package org.hl7.fhir.common.hapi.validation.validator;
 
-import ca.uhn.fhir.context.support.ConceptValidationOptions;
-import ca.uhn.fhir.context.support.IValidationSupport;
 import ca.uhn.fhir.context.support.ValidationSupportContext;
 import ca.uhn.fhir.i18n.Msg;
-import ca.uhn.fhir.rest.api.Constants;
-import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.NotImplementedException;
@@ -34,13 +30,11 @@ import org.hl7.fhir.utilities.validation.ValidationOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 //!\\ Only work with the R4 fhir version
 
@@ -54,15 +48,8 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 		myValidationSupportContext = theValidationSupportContext;
 		myModelConverter = theModelConverter;
 
-		// see https://github.com/ahdis/matchbox/issues/51, otherwise an update of a structuredefinition takes 10 second
-		// long timeoutMillis = 10 * DateUtils.MILLIS_PER_SECOND;
-		long timeoutMillis = 1 * DateUtils.MILLIS_PER_SECOND;
-		if (System.getProperties().containsKey(ca.uhn.fhir.rest.api.Constants.TEST_SYSTEM_PROP_VALIDATION_RESOURCE_CACHES_MS)) {
-			timeoutMillis = Long.parseLong(System.getProperty(Constants.TEST_SYSTEM_PROP_VALIDATION_RESOURCE_CACHES_MS));
-		}
-
 		myFetchResourceCache = Caffeine.newBuilder()
-			.expireAfterWrite(timeoutMillis, TimeUnit.MILLISECONDS)
+			.expireAfterWrite(1000, TimeUnit.MILLISECONDS)
 			.maximumSize(10000)
 			.build(key -> {
 
@@ -95,18 +82,129 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 		setValidationMessageLanguage(getLocale());
 	}
 
-	public static ConceptValidationOptions convertConceptValidationOptions(ValidationOptions theOptions) {
-		ConceptValidationOptions retVal = new ConceptValidationOptions();
-		if (theOptions.isGuessSystem()) {
-			retVal = retVal.setInferSystem(true);
-		}
+	// Used for conversion
+	@Override
+	public List<StructureDefinition> getStructures() {
+		return allStructures();
+	}
+
+	@Override
+	public Locale getLocale() {
+		return new Locale("fr", "CH");
+	}
+
+	// Used for conversion
+	@Override
+	public <T extends Resource> T fetchResource(Class<T> class_, String uri) {
+		ResourceKey key = new ResourceKey(class_.getSimpleName(), uri);
+		@SuppressWarnings("unchecked")
+		T retVal = (T) myFetchResourceCache.get(key);
+
 		return retVal;
 	}
 
-	@Nonnull
-	public static VersionSpecificWorkerContextWrapper newVersionSpecificWorkerContextWrapper(IValidationSupport theValidationSupport) {
-		return new VersionSpecificWorkerContextWrapper(new ValidationSupportContext(theValidationSupport), new VersionTypeConverterR4());
+	// Used for conversion
+	@Override
+	public String getOverrideVersionNs() {
+		return null;
 	}
+
+	// Used for conversion
+	@Override
+	public String getVersion() {
+		return "4.0.1";
+	}
+
+	// Used for conversion
+	@Override
+	public boolean isNoTerminologyServer() {
+		return false;
+	}
+
+	// Used for conversion
+	@Override
+	public boolean supportsSystem(String system) {
+		return false;
+	}
+
+	// Used by InstanceValidator during conversion
+	@Override
+	public ValidationResult validateCode(ValidationOptions theOptions, String code, org.hl7.fhir.r5.model.ValueSet theValueSet) {
+		return new ValidationResult(ValidationMessage.IssueSeverity.ERROR, "Validation failed");
+	}
+
+	// Used by InstanceValidator during conversion
+	@Override
+	public ValidationResult validateCode(ValidationOptions theOptions, org.hl7.fhir.r5.model.Coding theCoding, org.hl7.fhir.r5.model.ValueSet theValueSet) {
+		return new ValidationResult(ValidationMessage.IssueSeverity.ERROR, "Validation failed");
+	}
+
+	// Used by InstanceValidator during conversion
+	@Override
+	public ValidationResult validateCode(ValidationOptions theOptions, org.hl7.fhir.r5.model.CodeableConcept code, org.hl7.fhir.r5.model.ValueSet theVs) {
+		return new ValidationResult(ValidationMessage.IssueSeverity.ERROR, "Validation failed");
+	}
+
+	public interface IVersionTypeConverter {
+
+		org.hl7.fhir.r5.model.Resource toCanonical(IBaseResource theNonCanonical);
+
+		IBaseResource fromCanonical(org.hl7.fhir.r5.model.Resource theCanonical);
+
+	}
+
+	private static class ResourceKey {
+		private final int myHashCode;
+		private final String myResourceName;
+		private final String myUri;
+
+		private ResourceKey(String theResourceName, String theUri) {
+			myResourceName = theResourceName;
+			myUri = theUri;
+			myHashCode = new HashCodeBuilder(17, 37)
+				.append(myResourceName)
+				.append(myUri)
+				.toHashCode();
+		}
+
+		// Used
+		@Override
+		public boolean equals(Object theO) {
+			if (this == theO) {
+				return true;
+			}
+
+			if (theO == null || getClass() != theO.getClass()) {
+				return false;
+			}
+
+			ResourceKey that = (ResourceKey) theO;
+
+			return new EqualsBuilder()
+				.append(myResourceName, that.myResourceName)
+				.append(myUri, that.myUri)
+				.isEquals();
+		}
+
+		// Used
+		public String getResourceName() {
+			return myResourceName;
+		}
+
+		// Used
+		public String getUri() {
+			return myUri;
+		}
+
+		// Used
+		@Override
+		public int hashCode() {
+			return myHashCode;
+		}
+	}
+
+
+/************************************************** Methods not used  **************************************************/
 
 	@Override
 	public List<CanonicalResource> allConformanceResources() {
@@ -120,7 +218,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public Map<String, byte[]> getBinaries() {
-		return null;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -145,12 +243,12 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public boolean hasPackage(PackageVersion packageVersion) {
-		return false;
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public PackageDetails getPackage(PackageVersion packageVersion) {
-		return null;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -165,12 +263,12 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public TimeTracker clock() {
-		return null;
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public PackageVersion getPackageForUrl(String s) {
-		return null;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -180,25 +278,22 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public void generateSnapshot(StructureDefinition theStructureDefinition, boolean theB) {
-		// nothing yet
-	}
-
-	@Override
-	public org.hl7.fhir.r5.model.Parameters getExpansionParameters() {
-		return null;
-	}
-
-	@Override
-	public void setExpansionProfile(org.hl7.fhir.r5.model.Parameters expParameters) {}
-
-	@Override
-	public List<StructureDefinition> allStructures() {
 		throw new NotImplementedException();
 	}
 
 	@Override
-	public List<StructureDefinition> getStructures() {
-		return allStructures();
+	public org.hl7.fhir.r5.model.Parameters getExpansionParameters() {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void setExpansionProfile(org.hl7.fhir.r5.model.Parameters expParameters) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public List<StructureDefinition> allStructures() {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -208,37 +303,12 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public void cacheResourceFromPackage(Resource res, PackageVersion packageDetails) throws FHIRException {
-
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public void cachePackage(PackageDetails packageDetails, List<PackageVersion> list) {
-
-	}
-
-	@Nonnull
-	private ValidationResult convertValidationResult(String theSystem, @Nullable IValidationSupport.CodeValidationResult theResult) {
-		ValidationResult retVal = null;
-		if (theResult != null) {
-			String code = theResult.getCode();
-			String display = theResult.getDisplay();
-			String issueSeverity = theResult.getSeverityCode();
-			String message = theResult.getMessage();
-			if (isNotBlank(code)) {
-				retVal = new ValidationResult(theSystem, new org.hl7.fhir.r5.model.CodeSystem.ConceptDefinitionComponent()
-					.setCode(code)
-					.setDisplay(display));
-			} else if (isNotBlank(issueSeverity)) {
-				retVal = new ValidationResult(ValidationMessage.IssueSeverity.fromCode(issueSeverity), message, ValueSetExpander.TerminologyServiceErrorClass.UNKNOWN);
-			}
-
-		}
-
-		if (retVal == null) {
-			retVal = new ValidationResult(ValidationMessage.IssueSeverity.ERROR, "Validation failed");
-		}
-
-		return retVal;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -257,13 +327,8 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 	}
 
 	@Override
-	public Locale getLocale() {
-		return myValidationSupportContext.getRootValidationSupport().getFhirContext().getLocalizer().getLocale();
-	}
-
-	@Override
 	public void setLocale(Locale locale) {
-		// ignore
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -274,20 +339,6 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 	@Override
 	public CodeSystem fetchCodeSystem(String system, String verison) {
 		throw new NotImplementedException();
-	}
-
-	@Override
-	public <T extends Resource> T fetchResource(Class<T> class_, String uri) {
-
-		if (isBlank(uri)) {
-			return null;
-		}
-
-		ResourceKey key = new ResourceKey(class_.getSimpleName(), uri);
-		@SuppressWarnings("unchecked")
-		T retVal = (T) myFetchResourceCache.get(key);
-
-		return retVal;
 	}
 
 	@Override
@@ -302,7 +353,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public <T extends Resource> T fetchResource(Class<T> class_, String uri, String version) {
-		return fetchResource(class_, uri + "|" + version);
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -314,6 +365,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 	public List<org.hl7.fhir.r5.model.ConceptMap> findMapsForSource(String url) {
 		throw new UnsupportedOperationException(Msg.code(669));
 	}
+
 
 	@Override
 	public String getAbbreviation(String name) {
@@ -332,7 +384,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public List<String> getResourceNames() {
-		return new ArrayList<>(myValidationSupportContext.getRootValidationSupport().getFhirContext().getResourceTypes());
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -343,11 +395,6 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 	@Override
 	public org.hl7.fhir.r5.model.StructureMap getTransform(String url) {
 		throw new UnsupportedOperationException(Msg.code(673));
-	}
-
-	@Override
-	public String getOverrideVersionNs() {
-		return null;
 	}
 
 	@Override
@@ -381,11 +428,6 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 	}
 
 	@Override
-	public String getVersion() {
-		return myValidationSupportContext.getRootValidationSupport().getFhirContext().getVersion().getVersion().getFhirVersionString();
-	}
-
-	@Override
 	public String getSpecUrl() {
 		throw new UnsupportedOperationException(Msg.code(678));
 	}
@@ -398,11 +440,6 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 	@Override
 	public <T extends Resource> boolean hasResource(Class<T> class_, String uri) {
 		throw new UnsupportedOperationException(Msg.code(680));
-	}
-
-	@Override
-	public boolean isNoTerminologyServer() {
-		return false;
 	}
 
 	@Override
@@ -437,17 +474,12 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public ILoggingService getLogger() {
-		return null;
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public void setLogger(ILoggingService logger) {
 		throw new UnsupportedOperationException(Msg.code(687));
-	}
-
-	@Override
-	public boolean supportsSystem(String system) {
-		return myValidationSupportContext.getRootValidationSupport().isCodeSystemSupported(myValidationSupportContext, system);
 	}
 
 	@Override
@@ -457,7 +489,7 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 
 	@Override
 	public ValueSetExpander.ValueSetExpansionOutcome expandVS(ValueSet source, boolean cacheOk, boolean heiarchical, boolean incompleteOk) {
-		return null;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -471,136 +503,17 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 	}
 
 	@Override
-	public ValidationResult validateCode(ValidationOptions theOptions, String code, org.hl7.fhir.r5.model.ValueSet theValueSet) {
-		IBaseResource convertedVs = null;
-		try {
-			if (theValueSet != null) {
-				convertedVs = myModelConverter.fromCanonical(theValueSet);
-			}
-		} catch (FHIRException e) {
-			throw new InternalErrorException(Msg.code(690) + e);
-		}
-
-		ConceptValidationOptions validationOptions = convertConceptValidationOptions(theOptions).setInferSystem(true);
-
-		return doValidation(convertedVs, validationOptions, null, code, null);
-	}
-
-	@Override
-	public ValidationResult validateCode(ValidationOptions theOptions, org.hl7.fhir.r5.model.Coding theCoding, org.hl7.fhir.r5.model.ValueSet theValueSet) {
-		IBaseResource convertedVs = null;
-
-		try {
-			if (theValueSet != null) {
-				convertedVs = myModelConverter.fromCanonical(theValueSet);
-			}
-		} catch (FHIRException e) {
-			throw new InternalErrorException(Msg.code(691) + e);
-		}
-
-		ConceptValidationOptions validationOptions = convertConceptValidationOptions(theOptions);
-		String system = theCoding.getSystem();
-		String code = theCoding.getCode();
-		String display = theCoding.getDisplay();
-
-		return doValidation(convertedVs, validationOptions, system, code, display);
-	}
-
-	@Override
 	public ValidationResult validateCode(ValidationOptions options, Coding code, ValueSet vs, ValidationContextCarrier ctxt) {
-		return validateCode(options, code, vs);
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public void validateCodeBatch(ValidationOptions options, List<? extends CodingValidationRequest> codes, ValueSet vs) {
-		for (CodingValidationRequest next : codes) {
-			ValidationResult outcome = validateCode(options, next.getCoding(), vs);
-			next.setResult(outcome);
-		}
-	}
-
-	@Nonnull
-	private ValidationResult doValidation(IBaseResource theValueSet, ConceptValidationOptions theValidationOptions, String theSystem, String theCode, String theDisplay) {
-		IValidationSupport.CodeValidationResult result;
-		if (theValueSet != null) {
-			result = myValidationSupportContext.getRootValidationSupport().validateCodeInValueSet(myValidationSupportContext, theValidationOptions, theSystem, theCode, theDisplay, theValueSet);
-		} else {
-			result = myValidationSupportContext.getRootValidationSupport().validateCode(myValidationSupportContext, theValidationOptions, theSystem, theCode, theDisplay, null);
-		}
-		return convertValidationResult(theSystem, result);
-	}
-
-	@Override
-	public ValidationResult validateCode(ValidationOptions theOptions, org.hl7.fhir.r5.model.CodeableConcept code, org.hl7.fhir.r5.model.ValueSet theVs) {
-		for (Coding next : code.getCoding()) {
-			ValidationResult retVal = validateCode(theOptions, next, theVs);
-			if (retVal.isOk()) {
-				return retVal;
-			}
-		}
-
-		return new ValidationResult(ValidationMessage.IssueSeverity.ERROR, null);
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public List<String> getCanonicalResourceNames() {
-		return null;
-	}
-
-	public interface IVersionTypeConverter {
-
-		org.hl7.fhir.r5.model.Resource toCanonical(IBaseResource theNonCanonical);
-
-		IBaseResource fromCanonical(org.hl7.fhir.r5.model.Resource theCanonical);
-
-	}
-
-	private static class ResourceKey {
-		private final int myHashCode;
-		private final String myResourceName;
-		private final String myUri;
-
-		private ResourceKey(String theResourceName, String theUri) {
-			myResourceName = theResourceName;
-			myUri = theUri;
-			myHashCode = new HashCodeBuilder(17, 37)
-				.append(myResourceName)
-				.append(myUri)
-				.toHashCode();
-		}
-
-		@Override
-		public boolean equals(Object theO) {
-			if (this == theO) {
-				return true;
-			}
-
-			if (theO == null || getClass() != theO.getClass()) {
-				return false;
-			}
-
-			ResourceKey that = (ResourceKey) theO;
-
-			return new EqualsBuilder()
-				.append(myResourceName, that.myResourceName)
-				.append(myUri, that.myUri)
-				.isEquals();
-		}
-
-		public String getResourceName() {
-			return myResourceName;
-		}
-
-		public String getUri() {
-			return myUri;
-		}
-
-		@Override
-		public int hashCode() {
-			return myHashCode;
-		}
+		throw new NotImplementedException();
 	}
 }
-
-
-
