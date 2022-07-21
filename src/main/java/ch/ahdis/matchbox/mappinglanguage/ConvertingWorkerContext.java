@@ -56,7 +56,7 @@ public class ConvertingWorkerContext extends VersionSpecificWorkerContextWrapper
 	private DaoRegistry myDaoRegistry;
 
 	public ConvertingWorkerContext(JpaExtendedValidationSupportChain myValidationSupport) throws IOException, FHIRException {
-		super(new ValidationSupportContext(myValidationSupport), new VersionTypeConverterR4());
+		super(myValidationSupport, new VersionTypeConverterR4());
 		this.myModelConverter = new VersionTypeConverterR4();
 		if (ConvertingWorkerContext.validatorFactory == null) {
 			ConvertingWorkerContext.validatorFactory = new InstanceValidatorFactory();

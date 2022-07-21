@@ -1,14 +1,12 @@
 package org.hl7.fhir.common.hapi.validation.validator;
 
-import ca.uhn.fhir.context.support.ValidationSupportContext;
 import ca.uhn.fhir.i18n.Msg;
+import ca.uhn.fhir.jpa.validation.JpaValidationSupportChain;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.time.DateUtils;
 import org.fhir.ucum.UcumService;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.exceptions.TerminologyServiceException;
@@ -40,12 +38,12 @@ import java.util.concurrent.TimeUnit;
 
 public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWorkerContext {
 	private static final Logger ourLog = LoggerFactory.getLogger(VersionSpecificWorkerContextWrapper.class);
-	private final ValidationSupportContext myValidationSupportContext;
+	private final JpaValidationSupportChain myValidationSupport;
 	private final IVersionTypeConverter myModelConverter;
 	private final LoadingCache<ResourceKey, IBaseResource> myFetchResourceCache;
 
-	public VersionSpecificWorkerContextWrapper(ValidationSupportContext theValidationSupportContext, IVersionTypeConverter theModelConverter) {
-		myValidationSupportContext = theValidationSupportContext;
+	public VersionSpecificWorkerContextWrapper(JpaValidationSupportChain theValidationSupport, IVersionTypeConverter theModelConverter) {
+		myValidationSupport = theValidationSupport;
 		myModelConverter = theModelConverter;
 
 		myFetchResourceCache = Caffeine.newBuilder()
@@ -53,30 +51,15 @@ public class VersionSpecificWorkerContextWrapper extends I18nBase implements IWo
 			.maximumSize(10000)
 			.build(key -> {
 
+				// StructureDefinition or ValueSet
 				String fetchResourceName = key.getResourceName();
 
-				Class<? extends IBaseResource> fetchResourceType;
-				if (fetchResourceName.equals("Resource")) {
-					fetchResourceType = null;
-				} else {
-					fetchResourceType = myValidationSupportContext.getRootValidationSupport().getFhirContext().getResourceDefinition(fetchResourceName).getImplementingClass();
-				}
+				Class<? extends IBaseResource> fetchResourceType = myValidationSupport.getFhirContext()
+					.getResourceDefinition(fetchResourceName).getImplementingClass();
 
-				IBaseResource fetched = myValidationSupportContext.getRootValidationSupport().fetchResource(fetchResourceType, key.getUri());
+				IBaseResource fetched = myValidationSupport.fetchResource(fetchResourceType, key.getUri());
 
-				Resource canonical = myModelConverter.toCanonical(fetched);
-
-				if (canonical instanceof StructureDefinition) {
-					StructureDefinition canonicalSd = (StructureDefinition) canonical;
-					if (canonicalSd.getSnapshot().isEmpty()) {
-						ourLog.info("Generating snapshot for StructureDefinition: {}", canonicalSd.getUrl());
-						fetched = myValidationSupportContext.getRootValidationSupport().generateSnapshot(theValidationSupportContext, fetched, "", null, "");
-						Validate.isTrue(fetched != null, "StructureDefinition %s has no snapshot, and no snapshot generator is configured", key.getUri());
-						canonical = myModelConverter.toCanonical(fetched);
-					}
-				}
-
-				return canonical;
+				return myModelConverter.toCanonical(fetched);
 			});
 
 		setValidationMessageLanguage(getLocale());

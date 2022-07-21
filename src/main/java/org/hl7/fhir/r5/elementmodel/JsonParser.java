@@ -71,6 +71,8 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import static java.lang.Integer.parseInt;
+
 public class JsonParser extends ParserBase {
 
 	private JsonCreator json;
@@ -78,12 +80,6 @@ public class JsonParser extends ParserBase {
 	private boolean allowComments;
 
 	private ProfileUtilities profileUtilities;
-
-	public JsonParser(IWorkerContext context, ProfileUtilities utilities) {
-		super(context);
-
-		this.profileUtilities = utilities;
-	}
 
 	public JsonParser(IWorkerContext context) {
 		super(context);
@@ -107,23 +103,6 @@ public class JsonParser extends ParserBase {
 
 	}
 
-	public Element parse(String source, String type) throws Exception {
-		JsonObject obj = (JsonObject) new com.google.gson.JsonParser().parse(source);
-		String path = "/" + type;
-		StructureDefinition sd = getDefinition(-1, -1, type);
-		if (sd == null)
-			return null;
-
-		Element result = new Element(type, new Property(context, sd.getSnapshot().getElement().get(0), sd, this.profileUtilities));
-		result.setPath(type);
-		checkObject(obj, path);
-		result.setType(type);
-		parseChildren(path, obj, result, true);
-		result.numberChildren();
-		return result;
-	}
-
-
 	@Override
 	public List<NamedElement> parse(InputStream stream) throws IOException, FHIRException {
 		// if we're parsing at this point, then we're going to use the custom parser
@@ -145,18 +124,12 @@ public class JsonParser extends ParserBase {
 			}
 		} else {
 			JsonObject obj = JsonTrackingParser.parse(source, null); // (JsonObject) new com.google.gson.JsonParser().parse(source);
-			//			assert (map.containsKey(obj));
 			Element e = parse(obj);
 			if (e != null) {
 				res.add(new NamedElement(null, e));
 			}
 		}
 		return res;
-	}
-
-	public Element parse(JsonObject object, Map<JsonElement, LocationData> map) throws FHIRException {
-		this.map = map;
-		return parse(object);
 	}
 
 	public Element parse(JsonObject object) throws FHIRException {
@@ -173,27 +146,12 @@ public class JsonParser extends ParserBase {
 				return null;
 
 			Element result = new Element(name, new Property(context, sd.getSnapshot().getElement().get(0), sd, this.profileUtilities));
-			checkObject(object, path);
 			result.markLocation(line(object), col(object));
 			result.setType(name);
 			result.setPath(result.fhirType());
 			parseChildren(path, object, result, true);
 			result.numberChildren();
 			return result;
-		}
-	}
-
-	private void checkObject(JsonObject object, String path) throws FHIRFormatError {
-		if (policy == ValidationPolicy.EVERYTHING) {
-			boolean found = false;
-			for (Entry<String, JsonElement> e : object.entrySet()) {
-				//    		if (!e.getKey().equals("fhir_comments")) {
-				found = true;
-				break;
-				//    		}
-			}
-			if (!found)
-				logError(line(object), col(object), path, IssueType.INVALID, context.formatMessage(I18nConstants.OBJECT_MUST_HAVE_SOME_CONTENT), IssueSeverity.ERROR);
 		}
 	}
 
@@ -208,15 +166,6 @@ public class JsonParser extends ParserBase {
 		// first pass: process the properties
 		for (Property property : properties) {
 			parseChildItem(path, object, element, processed, property);
-		}
-
-		// second pass: check for things not processed
-		if (policy != ValidationPolicy.NONE) {
-			for (Entry<String, JsonElement> e : object.entrySet()) {
-				if (!processed.contains(e.getKey())) {
-					logError(line(e.getValue()), col(e.getValue()), path, IssueType.STRUCTURE, context.formatMessage(I18nConstants.UNRECOGNISED_PROPERTY_, e.getKey()), IssueSeverity.ERROR);
-				}
-			}
 		}
 	}
 
@@ -279,7 +228,6 @@ public class JsonParser extends ParserBase {
 			JsonObject child = (JsonObject) e;
 			Element n = new Element(name, property).markLocation(line(child), col(child));
 			n.setPath(fpath);
-			checkObject(child, npath);
 			element.getChildren().add(n);
 			if (property.isResource())
 				parseResource(npath, child, n, property);
@@ -368,21 +316,9 @@ public class JsonParser extends ParserBase {
 						logError(line(main), col(main), npath, IssueType.INVALID, context.formatMessage(I18nConstants.ERROR_PARSING_XHTML_, e.getMessage()), IssueSeverity.ERROR);
 					}
 				}
-				if (policy == ValidationPolicy.EVERYTHING) {
-					// now we cross-check the primitive format against the stated type
-					if (Utilities.existsInList(n.getType(), "boolean")) {
-						if (!p.isBoolean())
-							logError(line(main), col(main), npath, IssueType.INVALID, context.formatMessage(I18nConstants.ERROR_PARSING_JSON_THE_PRIMITIVE_VALUE_MUST_BE_A_BOOLEAN), IssueSeverity.ERROR);
-					} else if (Utilities.existsInList(n.getType(), "integer", "unsignedInt", "positiveInt", "decimal")) {
-						if (!p.isNumber())
-							logError(line(main), col(main), npath, IssueType.INVALID, context.formatMessage(I18nConstants.ERROR_PARSING_JSON_THE_PRIMITIVE_VALUE_MUST_BE_A_NUMBER), IssueSeverity.ERROR);
-					} else if (!p.isString())
-						logError(line(main), col(main), npath, IssueType.INVALID, context.formatMessage(I18nConstants.ERROR_PARSING_JSON_THE_PRIMITIVE_VALUE_MUST_BE_A_STRING), IssueSeverity.ERROR);
-				}
 			}
 			if (fork != null) {
 				JsonObject child = (JsonObject) fork;
-				checkObject(child, npath);
 				parseChildren(npath, child, n, false);
 			}
 		}
@@ -479,19 +415,6 @@ public class JsonParser extends ParserBase {
 		osw.flush();
 	}
 
-	public void compose(Element e, JsonCreator json) throws Exception {
-		this.json = json;
-		json.beginObject();
-
-		prop("resourceType", e.getType(), linkResolver == null ? null : linkResolver.resolveProperty(e.getProperty()));
-		Set<String> done = new HashSet<String>();
-		for (Element child : e.getChildren()) {
-			compose(e.getName(), e, done, child);
-		}
-		json.endObject();
-		json.finish();
-	}
-
 	private void compose(String path, Element e, Set<String> done, Element child) throws IOException {
 		boolean isList = child.hasElementProperty() ? child.getElementProperty().isList() : child.getProperty().isList();
 		if (!isList) {// for specials, ignore the cardinality of the stated type
@@ -556,9 +479,9 @@ public class JsonParser extends ParserBase {
 		}
 		String type = item.getType();
 		if (Utilities.existsInList(type, "boolean"))
-			json.value(item.getValue().trim().equals("true") ? new Boolean(true) : new Boolean(false));
+			json.value(item.getValue().trim().equals("true"));
 		else if (Utilities.existsInList(type, "integer", "unsignedInt", "positiveInt"))
-			json.value(new Integer(item.getValue()));
+			json.value(parseInt(item.getValue()));
 		else if (Utilities.existsInList(type, "decimal"))
 			try {
 				json.value(new BigDecimal(item.getValue()));
@@ -590,15 +513,4 @@ public class JsonParser extends ParserBase {
 			close();
 		}
 	}
-
-	public boolean isAllowComments() {
-		return allowComments;
-	}
-
-	public JsonParser setAllowComments(boolean allowComments) {
-		this.allowComments = allowComments;
-		return this;
-	}
-
-
 }
