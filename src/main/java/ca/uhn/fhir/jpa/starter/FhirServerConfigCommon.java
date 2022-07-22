@@ -79,6 +79,8 @@ public class FhirServerConfigCommon {
 		retVal.setAdvancedLuceneIndexing(appProperties.getAdvanced_lucene_indexing());
 		retVal.setTreatBaseUrlsAsLocal(new HashSet<>(appProperties.getLocal_base_urls()));
 
+		retVal.setEnableTaskPreExpandValueSets(false);
+
 		return retVal;
 	}
 

@@ -1,5 +1,9 @@
 # À faire
 
+1. Utiliser un H2 en mémoire à la place de Postgres
+2. Investiguer comment lancer une deuxième app Spring depuis une première et communiquer entre les deux.
+3. Nettoyer à fond.
+4. Installer les IGs depuis un paquet local
 
 ## Questions
 
