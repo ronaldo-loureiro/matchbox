@@ -42,8 +42,6 @@ import org.hl7.fhir.r5.model.ConceptMap.TargetElementComponent;
 import org.hl7.fhir.r5.model.Enumerations.ConceptMapRelationship;
 import org.hl7.fhir.utilities.CanonicalPair;
 
-import ca.uhn.fhir.context.FhirContext;
-
 public class ConceptMapEngine {
 
   private VersionSpecificWorkerContextWrapper context;

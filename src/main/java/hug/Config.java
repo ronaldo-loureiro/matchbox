@@ -1,7 +1,5 @@
 package hug;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.sched.ISchedulerService;
 import ch.ahdis.fhir.hapi.jpa.validation.ImplementationGuideProvider;
 import ch.ahdis.matchbox.mappinglanguage.ConvertingWorkerContext;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -20,6 +20,7 @@ import org.hl7.fhir.r5.model.StructureMap;
 import org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,18 +82,7 @@ public class Transform {
 			}
 		}
 
-		OutputStream os = new OutputStream() {
-			private final StringBuilder strBuild = new StringBuilder();
-			@Override
-			public void write(int b) {
-				strBuild.append((char) b);
-			}
-
-			@Override
-			public String toString() {
-				return strBuild.toString();
-			}
-		};
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
 
 		try {
 			switch (src_format){
@@ -104,7 +94,7 @@ public class Transform {
 					break;
 			}
 
-			System.out.println(os);
+			System.out.println(os.toString(StandardCharsets.UTF_8));
 
 		} catch(FHIRException e) {
 			os.write("Exception during Transform: ".getBytes());

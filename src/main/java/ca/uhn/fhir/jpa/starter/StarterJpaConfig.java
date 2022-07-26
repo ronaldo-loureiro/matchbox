@@ -3,38 +3,22 @@ package ca.uhn.fhir.jpa.starter;
 import ca.uhn.fhir.context.ConfigurationException;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.api.IDaoRegistry;
-import ca.uhn.fhir.jpa.api.dao.IFhirSystemDao;
-import ca.uhn.fhir.jpa.batch.config.NonPersistedBatchConfigurer;
 import ca.uhn.fhir.jpa.config.util.HapiEntityManagerFactoryUtil;
-import ca.uhn.fhir.jpa.config.util.ResourceCountCacheUtil;
-import ca.uhn.fhir.jpa.dao.FulltextSearchSvcImpl;
-import ca.uhn.fhir.jpa.dao.IFulltextSearchSvc;
 import ca.uhn.fhir.jpa.provider.DaoRegistryResourceSupportedSvc;
 import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
-import ca.uhn.fhir.jpa.search.IStaleSearchDeletingSvc;
-import ca.uhn.fhir.jpa.search.StaleSearchDeletingSvcImpl;
-import ca.uhn.fhir.jpa.util.ResourceCountCache;
 import ca.uhn.fhir.rest.api.IResourceSupportedSvc;
-import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 @Configuration
 public class StarterJpaConfig {
-//	@Bean
-//	public BatchConfigurer batchConfigurer() {
-//		return new NonPersistedBatchConfigurer();
-//	}
-
 	@Autowired
 	AppProperties appProperties;
 	@Autowired

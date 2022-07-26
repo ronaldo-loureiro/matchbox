@@ -1,27 +1,22 @@
 package ch.ahdis.matchbox.util;
 
-import ca.uhn.fhir.context.*;
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
 import ca.uhn.fhir.jpa.api.model.DaoMethodOutcome;
-import ca.uhn.fhir.jpa.model.config.PartitionSettings;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.jpa.packages.*;
-import ca.uhn.fhir.jpa.partition.SystemRequestDetails;
+import ca.uhn.fhir.jpa.packages.ImplementationGuideInstallationException;
+import ca.uhn.fhir.jpa.packages.JpaPackageCache;
+import ca.uhn.fhir.jpa.packages.PackageInstallOutcomeJson;
+import ca.uhn.fhir.jpa.packages.PackageInstallationSpec;
 import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.util.FhirTerser;
-import ca.uhn.fhir.util.SearchParameterUtil;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.Validate;
-import org.hl7.fhir.Uri;
-import org.hl7.fhir.instance.model.api.*;
-import org.hl7.fhir.r4.model.ImplementationGuide;
-import org.hl7.fhir.r4.model.ImplementationGuide.ImplementationGuideDefinitionComponent;
-import org.hl7.fhir.r4.model.ImplementationGuide.ImplementationGuideDefinitionResourceComponent;
+import org.hl7.fhir.instance.model.api.IBase;
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.utilities.npm.IPackageCacheManager;
 import org.hl7.fhir.utilities.npm.NpmPackage;
 import org.hl7.fhir.utilities.npm.NpmPackage.NpmPackageFolder;
@@ -32,10 +27,9 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.*;
-
-import static org.apache.commons.lang3.StringUtils.defaultString;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * This is a copy of ca.uhn.fhir.jpa.packages.PackageInstallerSvcImpl

@@ -19,31 +19,22 @@
  */
 package ch.ahdis.matchbox.mappinglanguage;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+ import org.hl7.fhir.exceptions.FHIRException;
+ import org.hl7.fhir.r5.context.IWorkerContext;
+ import org.hl7.fhir.r5.model.*;
+ import org.hl7.fhir.r5.model.ConceptMap.ConceptMapGroupComponent;
+ import org.hl7.fhir.r5.model.ConceptMap.SourceElementComponent;
+ import org.hl7.fhir.r5.model.ConceptMap.TargetElementComponent;
+ import org.hl7.fhir.r5.model.Enumerations.ConceptMapRelationship;
+ import org.hl7.fhir.r5.utils.structuremap.ITransformerServices;
+ import org.hl7.fhir.r5.utils.structuremap.SourceElementComponentWrapper;
+ import org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities;
+ import org.hl7.fhir.r5.utils.structuremap.TransformContext;
+ import org.jboss.logging.Logger;
 
-import org.hl7.fhir.exceptions.FHIRException;
-import org.hl7.fhir.r5.conformance.ProfileUtilities.ProfileKnowledgeProvider;
-import org.hl7.fhir.r5.context.IWorkerContext;
-import org.hl7.fhir.r5.model.Base;
-import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.CodeableConcept;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.ConceptMap;
-import org.hl7.fhir.r5.model.ConceptMap.ConceptMapGroupComponent;
-import org.hl7.fhir.r5.model.ConceptMap.SourceElementComponent;
-import org.hl7.fhir.r5.model.ConceptMap.TargetElementComponent;
-import org.hl7.fhir.r5.model.Enumerations.ConceptMapRelationship;
-import org.hl7.fhir.r5.model.Resource;
-import org.hl7.fhir.r5.model.StringType;
-import org.hl7.fhir.r5.model.StructureMap;
-import org.hl7.fhir.r5.model.UriType;
-import org.hl7.fhir.r5.utils.structuremap.ITransformerServices;
-import org.hl7.fhir.r5.utils.structuremap.SourceElementComponentWrapper;
-import org.hl7.fhir.r5.utils.structuremap.StructureMapUtilities;
-import org.hl7.fhir.r5.utils.structuremap.TransformContext;
-import org.jboss.logging.Logger;
+ import java.util.ArrayList;
+ import java.util.EnumSet;
+ import java.util.List;
 
 /**
  * Class to overwrite translation method to fix certain problems with CDA2FHIR
